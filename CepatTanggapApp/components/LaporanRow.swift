@@ -50,8 +50,8 @@ struct LaporanRow: View {
                     .lineLimit(2)
             }
             
-            if let foto = laporan.foto, !foto.isEmpty {
-                AsyncImage(url: URL(string: "http://localhost:5000\(foto)")) { phase in
+            if let url = laporan.fullFotoURL{
+                AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
                         ProgressView()

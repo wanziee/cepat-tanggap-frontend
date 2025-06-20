@@ -12,7 +12,7 @@ class LaporanViewModel: ObservableObject {
     var filterUserId: Int?
     var fetchAll = false
     
-    private let baseURL = "http://localhost:3000/api"
+    private let baseURL = "http://192.168.100.12:3000/api"
     
     // MARK: - Fetch Laporan
     

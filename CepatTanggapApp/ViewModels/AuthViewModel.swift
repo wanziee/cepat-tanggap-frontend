@@ -8,7 +8,7 @@ final class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = false
     
-    public let baseURL = "http://localhost:3000/api"
+    public let baseURL = "http://192.168.100.12:3000/api"
     private var cancellables = Set<AnyCancellable>()
     
     init() {
