@@ -38,11 +38,12 @@ struct MapPickerView: View {
                 VStack() {
                     HStack{
                         Image(systemName: "xmark")
-                            .padding(.vertical, 5)
-                            .padding(.horizontal, 5)
+                            .padding(8)
+                            .cornerRadius(20)
                             .background(.thinMaterial)
                             .clipShape(.circle)
-                            .font(.headline)
+                            .font(.system(size: 13))
+                            .fontWeight(.bold)
                         
                         Text("Pilih Lokasi")
                             .font(.headline)
@@ -58,9 +59,8 @@ struct MapPickerView: View {
                             Label("Lat: \(String(format: "%.6f", selectedCoordinate?.latitude ?? "0"))", systemImage: "location.north")
                             Label("Lon: \(String(format: "%.6f", selectedCoordinate?.longitude ?? "0"))", systemImage: "location")
                         }
-//                        .font(.system(.body, design: .monospaced))
                         .font(.system(size: 15))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.black)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 6)
                         .background(.thinMaterial)

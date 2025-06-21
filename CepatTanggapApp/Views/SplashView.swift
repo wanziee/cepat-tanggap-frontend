@@ -20,11 +20,11 @@ struct SplashView: View {
             }
             .frame(height: 500)
             .frame(maxWidth: .infinity)
-            .background(Color("accentColor"))
+            .background(Color("AccentColor"))
             .clipShape(CustomCorner(corner: .bottomLeft, size: 70))
             
             ZStack{
-                Color("accentColor")
+                Color("AccentColor")
                 
                 Color(Color.white)
                     .clipShape(CustomCorner(corner: .topRight, size: 70))
@@ -34,7 +34,7 @@ struct SplashView: View {
                         Text("Selamat Datang di")
                         Text("CEPAT TANGGAP")
                     }
-                    .foregroundStyle(Color("accentColor"))
+                    .foregroundStyle(Color("AccentColor"))
                     .font(.largeTitle)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,7 +56,7 @@ struct SplashView: View {
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color("accentColor"))
+                            .background(Color("AccentColor"))
                             .cornerRadius(10)
                     }
                 }

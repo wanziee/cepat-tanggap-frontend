@@ -54,7 +54,7 @@ struct LaporanDetailView: View {
                     .padding(.bottom, 8)
                 
                 // Photo if available
-                if let foto = laporan.foto, let url = URL(string: "http://localhost:5000\(foto)") {
+                if let url = laporan.fullFotoURL{
                     AsyncImage(url: url) { image in
                         image.resizable()
                             .aspectRatio(contentMode: .fit)

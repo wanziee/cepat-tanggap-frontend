@@ -5,7 +5,7 @@ struct ContentView: View {
     
     var body: some View {
         if authViewModel.isAuthenticated {
-            DashboardHomeView()
+            DashboardView()
         } else {
             SplashView()
         }

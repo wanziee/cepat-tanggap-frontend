@@ -12,8 +12,13 @@ class LaporanViewModel: ObservableObject {
     var filterUserId: Int?
     var fetchAll = false
     
-    private let baseURL = "http://192.168.100.12:3000/api"
     
+    //kostan: http://192.168.0.107:3000/api
+    //kontrakan:http://192.168.100.12:3000/api
+    
+    
+    private let baseURL = "http://192.168.0.107:3000/api"
+
     // MARK: - Fetch Laporan
     
     func fetchLaporan() {
@@ -83,6 +88,7 @@ class LaporanViewModel: ObservableObject {
         }.resume()
     }
     
+
     // MARK: - Create Laporan
     
     func createLaporan(judul: String, deskripsi: String, lokasi: String?, image: UIImage?, completion: @escaping (Bool) -> Void) {
@@ -258,4 +264,6 @@ class LaporanViewModel: ObservableObject {
         
         return ["admin", "rt", "rw"].contains(role.lowercased())
     }
+    
+
 }
