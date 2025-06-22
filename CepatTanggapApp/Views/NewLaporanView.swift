@@ -7,7 +7,7 @@ struct NewLaporanView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var laporanViewModel: LaporanViewModel
     
-    @State private var judul = ""
+    @State private var selectedKategori: KategoriLaporan = .fasilitasUmum
     @State private var deskripsi = ""
     @State private var lokasi: String = ""
     @State private var showMapPicker = false
@@ -19,169 +19,320 @@ struct NewLaporanView: View {
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
     
-    // RT/RW Selection
     @State private var selectedRW = 1
     @State private var selectedRT = 1
-    private let rwRange = 1...12
+    private let rwRange = 1...5
     private let rtRange = 1...10
     
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Informasi Laporan")) {
-                    TextField("Judul", text: $judul)
+            ScrollView {
+                VStack (spacing: 18){
                     
-                    // RW Picker
-                    Picker("RW", selection: $selectedRW) {
-                        ForEach(rwRange, id: \.self) { rw in
-                            Text("RW \(rw)").tag(rw)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
+                    informasiSection()
                     
-                    // RT Picker
-                    Picker("RT", selection: $selectedRT) {
-                        ForEach(rtRange, id: \.self) { rt in
-                            Text("RT \(rt)").tag(rt)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
+                    deskripsiSection()
                     
-                    Button(action: {
-                        selectedCoordinate = nil // reset agar MapPickerView selalu ke lokasi user
-                        showMapPicker = true
-                    }) {
-                        HStack {
-                            Image(systemName: "mappin.circle")
-                            if isGeocoding {
-                                ProgressView().scaleEffect(0.7)
-                                Text("Mengambil alamat...")
-                            } else {
-                                Text(lokasi.isEmpty ? "Tag Lokasi Sekarang" : lokasi)
-                            }
+                    imagePickerSection()
+                    
+                    
+                    Section {
+                        Button(action: {
+                            saveLaporan()
+                        }) {
+                            Text("Buat Laporan")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.accentColor)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                         }
-                    }
-                    .sheet(isPresented: $showMapPicker, onDismiss: {
-                        if let coordinate = selectedCoordinate {
-                            isGeocoding = true
-                            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-                            CLGeocoder().reverseGeocodeLocation(location) { placemarks, error in
-                                DispatchQueue.main.async {
-                                    isGeocoding = false
-                                    if let placemark = placemarks?.first {
-                                        let alamat = [placemark.name, placemark.subLocality, placemark.locality, placemark.administrativeArea]
-                                            .compactMap { $0 }
-                                            .joined(separator: ", ")
-                                        lokasi = alamat.isEmpty ? "(\(coordinate.latitude), \(coordinate.longitude))" : alamat
-                                    } else {
-                                        lokasi = "(\(coordinate.latitude), \(coordinate.longitude))"
-                                    }
-                                }
-                            }
-                        }
-                    }) {
-                        MapPickerView(selectedCoordinate: $selectedCoordinate)
+                        .disabled(deskripsi.isEmpty || laporanViewModel.isLoading)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                     }
                     
-                    ZStack(alignment: .topLeading) {
-                        if deskripsi.isEmpty {
-                            Text("Deskripsi laporan Anda")
-                                .foregroundColor(Color(UIColor.placeholderText))
-                                .padding(.top, 8)
-                                .padding(.leading, 4)
-                        }
-                        TextEditor(text: $deskripsi)
-                            .frame(minHeight: 100)
-                    }
+                    Spacer()
                 }
-                
-                Section(header: Text("Foto (opsional)")) {
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 200)
-                            .cornerRadius(8)
-                            .overlay(
-                                Button(action: { selectedImage = nil }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.red)
-                                        .background(Color.white)
-                                        .clipShape(Circle())
-                                }
-                                    .padding(4),
-                                alignment: .topTrailing
-                            )
-                    } else {
-                        HStack {
-                            Button(action: { isImagePickerPresented = true }) {
-                                HStack {
-                                    Image(systemName: "photo")
-                                    Text("Pilih dari Galeri")
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                
-                            }
-                            
-                            
-                            Button(action: { isShowingCamera = true }) {
-                                HStack {
-                                    Image(systemName: "camera")
-                                    Text("Ambil Foto")
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            }
-                            
+                .padding()
+                .navigationTitle("Buat Laporan Baru")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Batal") {
+                            presentationMode.wrappedValue.dismiss()
                         }
                     }
                 }
-            }
-            .navigationTitle("Buat Laporan Baru")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") {
+                .sheet(isPresented: $isImagePickerPresented) {
+                    ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+                }
+                .sheet(isPresented: $isShowingCamera) {
+                    ImagePicker(image: $selectedImage, sourceType: .camera)
+                }
+                .alert("Sukses", isPresented: $showSuccessAlert) {
+                    Button("OK") {
                         presentationMode.wrappedValue.dismiss()
                     }
+                } message: {
+                    Text("Laporan berhasil dibuat")
+                }
+                .alert("Error", isPresented: $showErrorAlert) {
+                    Button("OK") {
+                        laporanViewModel.errorMessage = nil
+                    }
+                }
+                message: {
+                    Text(laporanViewModel.errorMessage ?? "Terjadi kesalahan")
+                }
+            }
+            
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(UIColor.secondarySystemBackground))
+            
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    @ViewBuilder
+    func informasiSection() -> some View {
+        VStack(spacing: 0) {
+            // Kategori
+            HStack {
+                Text("Kategori")
+                    .foregroundColor(.black)
+                
+                
+                Spacer()
+                
+                Picker("", selection: $selectedKategori) {
+                    ForEach(KategoriLaporan.allCases) { kat in
+                        Text(kat.rawValue).tag(kat)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+            }
+            .padding(.vertical, 8)
+            
+            Divider()
+            
+            // RW
+            HStack {
+                Text("RW")
+                    .foregroundColor(.black)
+                    .frame(width: 80, alignment: .leading)
+                
+                Spacer()
+                
+                Picker("", selection: $selectedRW) {
+                    ForEach(rwRange, id: \.self) { rw in
+                        Text("RW \(rw)").tag(rw)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+            }
+            .padding(.vertical, 8)
+            
+            Divider()
+            
+            // RT
+            HStack {
+                Text("RT")
+                    .foregroundColor(.black)
+                    .frame(width: 80, alignment: .leading)
+                
+                Spacer()
+                
+                Picker("", selection: $selectedRT) {
+                    ForEach(rtRange, id: \.self) { rt in
+                        Text("RT \(rt)").tag(rt)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+            }
+            .padding(.vertical, 8)
+            
+            Divider()
+            
+            // Lokasi
+            HStack {
+                Button(action: {
+                    selectedCoordinate = nil
+                    showMapPicker = true
+                }) {
+                    HStack {
+                        if isGeocoding {
+                            ProgressView().scaleEffect(0.7)
+                            Text("Mengambil alamat...")
+                        } else {
+                            Text(lokasi.isEmpty ? "Tag Lokasi Sekarang" : lokasi)
+                                .foregroundColor(.black)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                        }
+                        Spacer()
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.bottom, 8)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.trailing)
+            .padding(.vertical, 8)
+            .padding(.top, 5)
+            .sheet(isPresented: $showMapPicker, onDismiss: fetchAlamat) {
+                MapPickerView(selectedCoordinate: $selectedCoordinate)
+            }
+        }
+        .padding(.leading)
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+    
+    @ViewBuilder
+    func deskripsiSection() -> some View{
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Deskripsi")
+                .foregroundColor(.black)
+                .padding(.bottom, 5)
+            
+            ZStack(alignment: .topLeading) {
+                if deskripsi.isEmpty {
+                    Text("Deskripsi laporan Anda")
+                        .foregroundColor(.gray)
+                        .padding(.top, 13)
+                        .padding(.leading, 8)
                 }
                 
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan") {
-                        saveLaporan()
+                TextEditor(text: $deskripsi)
+                    .frame(minHeight: 90, maxHeight: 150)
+                    .padding(4)
+                    .background(Color.clear)
+                    .scrollContentBackground(.hidden)
+            }
+            .background(Color("secondWhiteForm"))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color("borderForm"), lineWidth: 0.5)
+            )
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        
+    }
+    
+    @ViewBuilder
+    func imagePickerSection() -> some View {
+        
+        
+        
+        VStack {
+            if let image = selectedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 200)
+                    .cornerRadius(8)
+                    .overlay(
+                        Button(action: { selectedImage = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                                .background(Color.white)
+                                .clipShape(Circle())
+                        }.padding(4),
+                        alignment: .topTrailing
+                    )
+            } else {
+                ZStack {
+                    Rectangle()
+                        .fill(Color("secondWhiteForm"))
+                        .frame(height: 200)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(style: StrokeStyle(lineWidth: 1, dash: [8]))
+                                .foregroundColor(Color("borderForm"))
+                        )
+
+                    VStack(spacing: 8) {
+                        Image(systemName: "camera")
+                            .font(.system(size: 40))
+                            .foregroundColor(.gray)
+
+                        Text("Tambah Foto")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
                     }
-                    .disabled(judul.isEmpty || deskripsi.isEmpty || laporanViewModel.isLoading)
                 }
+
+
             }
-            .sheet(isPresented: $isImagePickerPresented) {
-                ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
-            }
-            .sheet(isPresented: $isShowingCamera) {
-                ImagePicker(image: $selectedImage, sourceType: .camera)
-            }
-            .alert("Sukses", isPresented: $showSuccessAlert) {
-                Button("OK") {
-                    presentationMode.wrappedValue.dismiss()
+            HStack {
+                Button(action: { isImagePickerPresented = true }) {
+                    HStack {
+                        Image(systemName: "photo")
+                        Text("Pilih dari Galeri")
+                    }
                 }
-            } message: {
-                Text("Laporan berhasil dibuat")
-            }
-            .alert("Error", isPresented: $showErrorAlert) {
-                Button("OK") {
-                    laporanViewModel.errorMessage = nil
+                .frame(maxWidth: .infinity)
+                
+                Divider()
+                
+                Button(action: { isShowingCamera = true }) {
+                    HStack {
+                        Image(systemName: "camera")
+                        Text("Ambil Foto")
+                    }
                 }
-            } message: {
-                Text(laporanViewModel.errorMessage ?? "Terjadi kesalahan")
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.top)
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(15)
+        
+        
+        
+        
+    }
+    
+    
+    private func fetchAlamat() {
+        guard let coordinate = selectedCoordinate else { return }
+        
+        isGeocoding = true
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        CLGeocoder().reverseGeocodeLocation(location) { placemarks, error in
+            DispatchQueue.main.async {
+                isGeocoding = false
+                if let placemark = placemarks?.first {
+                    let alamat = [placemark.name, placemark.subLocality, placemark.locality, placemark.administrativeArea]
+                        .compactMap { $0 }
+                        .joined(separator: ", ")
+                    lokasi = alamat.isEmpty ? "(\(coordinate.latitude), \(coordinate.longitude))" : alamat
+                } else {
+                    lokasi = "(\(coordinate.latitude), \(coordinate.longitude))"
+                }
             }
         }
     }
     
     private func saveLaporan() {
-        // Add RT/RW to lokasi
         let fullLokasi = "RW \(selectedRW), RT \(selectedRT)"
         let finalLokasi = lokasi.isEmpty ? fullLokasi : "\(fullLokasi), \(lokasi)"
         
         laporanViewModel.createLaporan(
-            judul: judul,
+            kategori: selectedKategori.rawValue,
             deskripsi: deskripsi,
             lokasi: finalLokasi,
             image: selectedImage
@@ -195,6 +346,8 @@ struct NewLaporanView: View {
     }
 }
 
+
+// MARK: - Image Picker
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     let sourceType: UIImagePickerController.SourceType
@@ -233,10 +386,8 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 }
 
-
-
+// MARK: - Preview
 #Preview {
     NewLaporanView()
         .environmentObject(LaporanViewModel())
 }
-

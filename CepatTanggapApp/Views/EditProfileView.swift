@@ -47,6 +47,15 @@ struct EditProfileView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    if let email = user.email, !email.isEmpty {
+                        HStack {
+                            Text("Email")
+                            Spacer()
+                            Text(email)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
                     HStack {
                         Text("Role")
                         Spacer()

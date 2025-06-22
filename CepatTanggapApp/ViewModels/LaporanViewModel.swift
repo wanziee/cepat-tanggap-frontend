@@ -91,7 +91,7 @@ class LaporanViewModel: ObservableObject {
 
     // MARK: - Create Laporan
     
-    func createLaporan(judul: String, deskripsi: String, lokasi: String?, image: UIImage?, completion: @escaping (Bool) -> Void) {
+    func createLaporan(kategori: String, deskripsi: String, lokasi: String?, image: UIImage?, completion: @escaping (Bool) -> Void) {
         isLoading = true
         errorMessage = nil
         
@@ -113,7 +113,7 @@ class LaporanViewModel: ObservableObject {
         
         // Add text fields
         let textParams: [String: String] = [
-            "judul": judul,
+            "kategori": kategori,
             "deskripsi": deskripsi,
             "lokasi": lokasi ?? ""
         ]

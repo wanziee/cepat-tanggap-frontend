@@ -4,7 +4,6 @@ struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var nik = ""
     @State private var password = ""
-    @State private var isRegistering = false
     
     var body: some View {
         NavigationView {
@@ -48,30 +47,20 @@ struct LoginView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Masuk")
-                                .fontWeight(.semibold)
+                            Text("Login")
+                                .frame(maxWidth: .infinity)
                         }
                     }
                     .buttonStyle(PrimaryButtonStyle())
-                    .disabled(authViewModel.isLoading || nik.isEmpty || password.isEmpty)
-                    
-                    Button(action: { isRegistering = true }) {
-                        Text("Belum punya akun? Daftar")
-                            .foregroundColor(.blue)
-                            .font(.subheadline)
-                    }
-                    .sheet(isPresented: $isRegistering) {
-                        RegisterView()
-                            .environmentObject(authViewModel)
-                    }
+                    .disabled(nik.isEmpty || password.isEmpty || authViewModel.isLoading)
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal)
                 
                 Spacer()
                 
                 // Footer
                 VStack(spacing: 4) {
-                    Text("© 2025 Cepat Tanggap")
+                    Text(" 2025 Cepat Tanggap")
                         .font(.caption)
                         .foregroundColor(.gray)
                     Text("Versi 1.0.0")
@@ -96,102 +85,11 @@ struct LoginView: View {
 struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .frame(maxWidth: .infinity)
             .padding()
             .background(Color.blue)
             .foregroundColor(.white)
             .cornerRadius(10)
             .opacity(configuration.isPressed ? 0.8 : 1.0)
-    }
-}
-
-struct RegisterView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var authViewModel: AuthViewModel
-    
-    @State private var nik = ""
-    @State private var nama = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
-    @State private var alamat = ""
-    @State private var selectedRole = "warga"
-    
-    let roles = ["warga", "rt", "rw"]
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Informasi Akun")) {
-                    TextField("NIK", text: $nik)
-                        .keyboardType(.numberPad)
-                    
-                    SecureField("Password", text: $password)
-                    
-                    SecureField("Konfirmasi Password", text: $confirmPassword)
-                }
-                
-                Section(header: Text("Data Diri")) {
-                    TextField("Nama Lengkap", text: $nama)
-                    
-                    Picker("Peran", selection: $selectedRole) {
-                        ForEach(roles, id: \.self) { role in
-                            Text(role.capitalized).tag(role)
-                        }
-                    }
-                    
-                    TextField("Alamat", text: $alamat)
-                }
-                
-                if let error = authViewModel.errorMessage {
-                    Section {
-                        Text(error)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                    }
-                }
-                
-                Section {
-                    Button(action: register) {
-                        if authViewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Text("Daftar")
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
-                    .disabled(isFormInvalid || authViewModel.isLoading)
-                }
-            }
-            .navigationTitle("Daftar Akun")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-    private var isFormInvalid: Bool {
-        nik.isEmpty || nama.isEmpty || password.isEmpty ||
-        password != confirmPassword || alamat.isEmpty ||
-        password.count < 6
-    }
-    
-    private func register() {
-        let userData: [String: Any] = [
-            "nik": nik,
-            "nama": nama,
-            "password": password,
-            "role": selectedRole,
-            "alamat": alamat
-        ]
-        
-        authViewModel.register(userData: userData)
     }
 }
 

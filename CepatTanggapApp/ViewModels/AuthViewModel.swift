@@ -36,8 +36,6 @@ final class AuthViewModel: ObservableObject {
         self.currentUser = user
     }
     
-    
-    
     // MARK: - Authentication
     
     func login(nik: String, password: String) {
@@ -70,58 +68,6 @@ final class AuthViewModel: ObservableObject {
                 guard let httpResponse = response as? HTTPURLResponse,
                       (200...299).contains(httpResponse.statusCode) else {
                     self?.errorMessage = "Invalid credentials"
-                    return
-                }
-                
-                if let data = data {
-                    do {
-                        let response = try JSONDecoder().decode(LoginResponse.self, from: data)
-                        self?.currentUser = response.user
-                        self?.isAuthenticated = true
-                        UserDefaults.standard.set(response.token, forKey: "authToken")
-                    } catch {
-                        self?.errorMessage = "Failed to decode response"
-                    }
-                }
-            }
-        }.resume()
-    }
-    
-    
-    
-    func register(userData: [String: Any]) {
-        isLoading = true
-        errorMessage = nil
-        
-        guard let url = URL(string: "\(baseURL)/auth/register") else {
-            errorMessage = "Invalid URL"
-            isLoading = false
-            return
-        }
-        
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: userData) else {
-            errorMessage = "Invalid user data"
-            isLoading = false
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      (200...299).contains(httpResponse.statusCode) else {
-                    self?.errorMessage = "Registration failed"
                     return
                 }
                 

@@ -26,7 +26,7 @@ struct LaporanDetailView: View {
                 
                 // Title and description
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(laporan.judul)
+                    Text(laporan.kategori.rawValue)
                         .font(.title2)
                         .fontWeight(.bold)
                     
@@ -130,7 +130,7 @@ struct LaporanDetailView_Previews: PreviewProvider {
         let laporan = Laporan(
             id: 1,
             userId: 1,
-            judul: "Jalan Rusak",
+            kategori: .jalanTransportasi,
             deskripsi: "Jalan di depan rumah rusak parah, mohon diperbaiki.",
             foto: "/uploads/example.jpg",
             lokasi: "Jl. Contoh No. 123",

@@ -15,7 +15,7 @@ struct LaporanRow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(laporan.judul)
+                    Text(laporan.kategori.rawValue)
                         .font(.headline)
                         .foregroundColor(.primary) // Ensure text is fully opaque
                     

@@ -117,6 +117,9 @@ struct ProfilePageView: View {
                     
                     Section(header: Text("Informasi Akun")) {
                         ProfileInfoRow(icon: "person.fill", title: "NIK", value: user.nik ?? "-")
+                        if let email = user.email, !email.isEmpty {
+                            ProfileInfoRow(icon: "envelope.fill", title: "Email", value: email)
+                        }
                         ProfileInfoRow(icon: "phone.fill", title: "No. HP", value: user.noHp ?? "-")
                         ProfileInfoRow(icon: "mappin.and.ellipse", title: "Alamat", value: user.alamat ?? "-")
                     }

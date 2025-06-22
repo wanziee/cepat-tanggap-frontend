@@ -4,6 +4,7 @@ struct User: Codable, Identifiable {
     let id: Int
     let nik: String?
     let nama: String
+    let email: String?
     let role: String
     let alamat: String?
     let noHp: String?
@@ -11,7 +12,7 @@ struct User: Codable, Identifiable {
     let updatedAt: Date?
     
     enum CodingKeys: String, CodingKey {
-        case id, nik, nama, role, alamat
+        case id, nik, nama, email, role, alamat
         case noHp = "no_hp"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
@@ -21,6 +22,7 @@ struct User: Codable, Identifiable {
     init(id: Int, 
          nik: String? = nil, 
          nama: String, 
+         email: String? = nil,
          role: String, 
          alamat: String? = nil, 
          noHp: String? = nil, 
@@ -29,6 +31,7 @@ struct User: Codable, Identifiable {
         self.id = id
         self.nik = nik
         self.nama = nama
+        self.email = email
         self.role = role
         self.alamat = alamat
         self.noHp = noHp
@@ -47,6 +50,7 @@ struct User: Codable, Identifiable {
         
         // Decode optional fields
         nik = try container.decodeIfPresent(String.self, forKey: .nik)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
         alamat = try container.decodeIfPresent(String.self, forKey: .alamat)
         noHp = try container.decodeIfPresent(String.self, forKey: .noHp)
         

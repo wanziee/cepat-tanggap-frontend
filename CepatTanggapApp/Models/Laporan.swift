@@ -4,7 +4,7 @@ import SwiftUI
 struct Laporan: Codable, Identifiable {
     let id: Int
     let userId: Int
-    let judul: String
+    let kategori: KategoriLaporan
     let deskripsi: String
     let foto: String?
     let lokasi: String?
@@ -21,7 +21,7 @@ struct Laporan: Codable, Identifiable {
     // Convenience initializer (digunakan di Preview / pembuatan dummy)
     init(id: Int,
          userId: Int,
-         judul: String,
+         kategori: KategoriLaporan,
          deskripsi: String,
          foto: String? = nil,
          lokasi: String? = nil,
@@ -32,7 +32,7 @@ struct Laporan: Codable, Identifiable {
          logStatus: [LogStatus]? = nil) {
         self.id = id
         self.userId = userId
-        self.judul = judul
+        self.kategori = kategori
         self.deskripsi = deskripsi
         self.foto = foto
         self.lokasi = lokasi
@@ -45,7 +45,7 @@ struct Laporan: Codable, Identifiable {
 
     static var sample: Laporan {
         let user = User(id: 1, nik: "000", nama: "Sample", role: "warga", alamat: nil)
-        return Laporan(id: 1, userId: 1, judul: "Contoh", deskripsi: "Desc", createdAt: "2023-01-01T00:00:00Z", updatedAt: "2023-01-01T00:00:00Z", user: user)
+        return Laporan(id: 1, userId: 1, kategori: .fasilitasUmum, deskripsi: "Desc", createdAt: "2023-01-01T00:00:00Z", updatedAt: "2023-01-01T00:00:00Z", user: user)
     }
 }
 
@@ -89,6 +89,20 @@ enum StatusLaporan: String, Codable, CaseIterable {
         case .selesai: return Color.green
         }
     }
+}
+
+enum KategoriLaporan: String, Codable, CaseIterable, Identifiable {
+    var id: String { rawValue }
+    case fasilitasUmum = "Fasilitas Umum"
+    case jalanTransportasi = "Jalan & Transportasi"
+    case sampahKebersihan = "Sampah & Kebersihan"
+    case airDrainase = "Air & Drainase"
+    case keamanan = "Keamanan"
+    case kesehatan = "Kesehatan"
+    case listrikPJU = "Listrik & PJU"
+    case bangunanLiar = "Bangunan Liar"
+    case lingkunganSosial = "Lingkungan Sosial"
+    case lainnya = "Lainnya"
 }
 
 struct LaporanListResponse: Codable {
