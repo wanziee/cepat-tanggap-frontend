@@ -11,8 +11,8 @@ final class AuthViewModel: ObservableObject {
     
     // kostan http://192.168.0.107:3000/api
     //kontrakan:http://192.168.100.12:3000/api
-
-    public let baseURL = "http://192.168.0.107:3000/api"
+    
+    public let baseURL = "http://192.168.100.15:3000/api"
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -116,33 +116,73 @@ final class AuthViewModel: ObservableObject {
                     return
                 }
                 
-                guard let httpResponse = response as? HTTPURLResponse else {
+                guard response is HTTPURLResponse else {
                     print("Invalid response")
                     self?.errorMessage = "Respon server tidak valid"
                     self?.setIsLoading(false)
                     return
                 }
                 
-                switch httpResponse.statusCode {
-                case 200...299:
-                    if let data = data {
-                        do {
-                            let user = try JSONDecoder().decode(User.self, from: data)
+                guard let data = data else {
+                    self?.errorMessage = "Tidak ada data yang diterima dari server"
+                    return
+                }
+                
+                // Cetak respons untuk debugging
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("Fetch profile response:", responseString)
+                }
+                
+                do {
+                    let decoder = JSONDecoder()
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                    decoder.dateDecodingStrategy = .formatted(dateFormatter)
+                    
+                    // Coba decode sebagai User langsung (untuk kompatibilitas ke belakang)
+                    if let user = try? decoder.decode(User.self, from: data) {
+                        DispatchQueue.main.async {
                             self?.currentUser = user
                             self?.isAuthenticated = true
                             self?.setErrorMessage(nil)
-                        } catch {
-                            print("Failed to decode user:", error.localizedDescription)
-                            self?.errorMessage = "Gagal memproses data profil"
                         }
+                        return
                     }
-                case 304:
-                    print("Profile not modified")
-                    // No need to update anything, data is still valid
-                    self?.setErrorMessage(nil)
-                default:
-                    print("Unexpected status code:", httpResponse.statusCode)
-                    self?.errorMessage = "Gagal mengambil profil"
+                    
+                    // Jika tidak berhasil, coba decode sebagai response dengan struktur { data: User }
+                    if let response = try? decoder.decode([String: User].self, from: data),
+                       let user = response["data"] {
+                        DispatchQueue.main.async {
+                            self?.currentUser = user
+                            self?.isAuthenticated = true
+                            self?.setErrorMessage(nil)
+                        }
+                        return
+                    }
+                    
+                    // Jika masih gagal, coba decode sebagai ProfileUpdateResponse
+                    if let response = try? decoder.decode(ProfileUpdateResponse.self, from: data) {
+                        DispatchQueue.main.async {
+                            self?.currentUser = response.user
+                            self?.isAuthenticated = true
+                            self?.setErrorMessage(nil)
+                        }
+                        return
+                    }
+                    
+                    // Jika semua decode gagal
+                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Format respons tidak valid"])
+                    
+                } catch {
+                    print("Failed to decode user:", error)
+                    
+                    // Coba parse pesan error dari server
+                    if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let message = errorResponse["message"] as? String {
+                        self?.errorMessage = message
+                    } else {
+                        self?.errorMessage = "Gagal memproses data profil: \(error.localizedDescription)"
+                    }
                 }
                 
                 self?.setIsLoading(false)
@@ -159,15 +199,40 @@ final class AuthViewModel: ObservableObject {
     struct ProfileUpdateResponse: Codable {
         let message: String
         let user: User
-
+        let data: User?
+        
         enum CodingKeys: String, CodingKey {
-            case message, user
+            case message, user, data
         }
-
+        
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             message = try container.decode(String.self, forKey: .message)
-            user = try container.decode(User.self, forKey: .user)
+            
+            // Coba decode user dari root terlebih dahulu (untuk kompatibilitas ke belakang)
+            if let user = try? container.decodeIfPresent(User.self, forKey: .user) {
+                self.user = user
+            }
+            // Jika tidak ada di root, coba ambil dari data.user
+            else if let data = try? container.nestedContainer(keyedBy: CodingKeys.self, forKey: .data),
+                    let user = try? data.decodeIfPresent(User.self, forKey: .user) {
+                self.user = user
+            }
+            // Jika masih tidak ada, gunakan nilai default
+            else {
+                throw DecodingError.dataCorruptedError(forKey: .user, in: container, debugDescription: "User data is missing or corrupted")
+            }
+            
+            // Decode data jika ada
+            self.data = try container.decodeIfPresent(User.self, forKey: .data)
+        }
+        
+        // Jika perlu encode juga
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(message, forKey: .message)
+            try container.encode(user, forKey: .user)
+            try container.encodeIfPresent(data, forKey: .data)
         }
     }
     
@@ -176,6 +241,8 @@ final class AuthViewModel: ObservableObject {
         name: String,
         address: String?,
         phone: String?,
+        rt: String? = nil,
+        rw: String? = nil,
         completion: @escaping (Bool, String) -> Void
     ) {
         self.isLoading = true
@@ -195,11 +262,20 @@ final class AuthViewModel: ObservableObject {
         }
         
         // Siapkan data yang akan dikirim
-        let profileData: [String: Any] = [
+        var profileData: [String: Any] = [
             "nama": name,
             "alamat": address ?? "",
             "no_hp": phone ?? ""
         ]
+        
+        // Tambahkan RT dan RW jika ada
+        if let rt = rt, !rt.isEmpty {
+            profileData["rt"] = rt
+        }
+        
+        if let rw = rw, !rw.isEmpty {
+            profileData["rw"] = rw
+        }
         
         // Encode data ke JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: profileData) else {
@@ -220,6 +296,8 @@ final class AuthViewModel: ObservableObject {
         print("Method:", request.httpMethod ?? "")
         print("Headers:", request.allHTTPHeaderFields ?? "")
         print("Body:", String(data: jsonData, encoding: .utf8) ?? "")
+        print("RT value being sent:", rt ?? "nil")
+        print("RW value being sent:", rw ?? "nil")
         
         // Kirim request
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
@@ -248,31 +326,45 @@ final class AuthViewModel: ObservableObject {
                 print("Response data:", responseData)
                 
                 // Handle response berdasarkan status code
-                switch httpResponse.statusCode {
-                case 200...299:
-                    // Jika sukses, update data user
-                    if let data = data {
-                        do {
-                            let response = try JSONDecoder().decode(ProfileUpdateResponse.self, from: data)
-                            self.currentUser = response.user
-                            completion(true, response.message)
-                        } catch {
-                            print("Decoding error:", error)
-                            completion(false, "Gagal memproses data profil")
-                        }
-                    } else {
-                        completion(false, "Tidak ada data yang diterima")
+                guard let data = data else {
+                    completion(false, "Tidak ada data yang diterima dari server")
+                    return
+                }
+                
+                // Cetak respons untuk debugging
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("Raw response:", responseString)
+                }
+                
+                do {
+                    let decoder = JSONDecoder()
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                    decoder.dateDecodingStrategy = .formatted(dateFormatter)
+                    
+                    let response = try decoder.decode(ProfileUpdateResponse.self, from: data)
+                    
+                    // Update current user dengan data terbaru
+                    DispatchQueue.main.async {
+                        self.currentUser = response.user
+                        self.isAuthenticated = true
+                        completion(true, response.message)
                     }
-                case 401:
-                    completion(false, "Sesi telah berakhir, silakan login kembali")
-                case 404:
-                    completion(false, "Endpoint tidak ditemukan")
-                default:
-                    completion(false, "Terjadi kesalahan (Kode: \(httpResponse.statusCode))")
+                } catch {
+                    print("Decoding error:", error)
+                    
+                    // Coba parse pesan error dari server
+                    if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let message = errorResponse["message"] as? String {
+                        completion(false, message)
+                    } else {
+                        completion(false, "Gagal memproses data profil: \(error.localizedDescription)")
+                    }
                 }
             }
         }.resume()
     }
+    
     
     // Method untuk mengubah password
     func changePassword(

@@ -8,6 +8,8 @@ struct EditProfileView: View {
     // MARK: - State
     @State private var phoneNumber = ""
     @State private var address = ""
+    @State private var rt = ""
+    @State private var rw = ""
     @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var confirmPassword = ""
@@ -78,6 +80,22 @@ struct EditProfileView: View {
                             .multilineTextAlignment(.trailing)
                     }
                     
+                    HStack {
+                        Text("RT")
+                        Spacer()
+                        TextField("Contoh: 001", text: $rt)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    
+                    HStack {
+                        Text("RW")
+                        Spacer()
+                        TextField("Contoh: 001", text: $rw)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    
                     Button("Simpan Perubahan") {
                         print("EditProfileView: Tombol Simpan Perubahan ditekan")
                         if !authViewModel.isLoading {
@@ -106,6 +124,8 @@ struct EditProfileView: View {
             if let user = currentUser {
                 phoneNumber = user.noHp ?? ""
                 address = user.alamat ?? ""
+                rt = user.rt ?? ""
+                rw = user.rw ?? ""
             }
         }
         .alert(isPresented: $showAlert) {
@@ -137,10 +157,23 @@ struct EditProfileView: View {
             return
         }
         
+        // Validasi RT dan RW jika diisi
+        if !rt.isEmpty && (Int(rt) == nil || rt.count > 3) {
+            showAlert(message: "RT harus berupa angka maksimal 3 digit")
+            return
+        }
+        
+        if !rw.isEmpty && (Int(rw) == nil || rw.count > 3) {
+            showAlert(message: "RW harus berupa angka maksimal 3 digit")
+            return
+        }
+        
         authViewModel.updateProfile(
             name: user.nama, 
             address: address, 
-            phone: phoneNumber
+            phone: phoneNumber,
+            rt: rt.isEmpty ? nil : rt,
+            rw: rw.isEmpty ? nil : rw
         ) { success, message in
             DispatchQueue.main.async {
                 print("EditProfileView: Callback updateProfile selesai, success: \(success), message: \(message)")
@@ -195,7 +228,9 @@ struct EditProfileView_Previews: PreviewProvider {
             nama: "John Doe",
             role: "warga",
             alamat: "Jl. Contoh No. 123",
-            noHp: "081234567890"
+            noHp: "081234567890",
+            rt: "001",
+            rw: "001"
         )
         
         return NavigationView {

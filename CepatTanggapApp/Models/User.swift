@@ -8,11 +8,13 @@ struct User: Codable, Identifiable {
     let role: String
     let alamat: String?
     let noHp: String?
+    let rt: String?
+    let rw: String?
     let createdAt: Date?
     let updatedAt: Date?
     
     enum CodingKeys: String, CodingKey {
-        case id, nik, nama, email, role, alamat
+        case id, nik, nama, email, role, alamat, rt, rw
         case noHp = "no_hp"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
@@ -26,6 +28,8 @@ struct User: Codable, Identifiable {
          role: String, 
          alamat: String? = nil, 
          noHp: String? = nil, 
+         rt: String? = nil,
+         rw: String? = nil,
          createdAt: Date? = nil, 
          updatedAt: Date? = nil) {
         self.id = id
@@ -35,6 +39,8 @@ struct User: Codable, Identifiable {
         self.role = role
         self.alamat = alamat
         self.noHp = noHp
+        self.rt = rt
+        self.rw = rw
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -53,6 +59,8 @@ struct User: Codable, Identifiable {
         email = try container.decodeIfPresent(String.self, forKey: .email)
         alamat = try container.decodeIfPresent(String.self, forKey: .alamat)
         noHp = try container.decodeIfPresent(String.self, forKey: .noHp)
+        rt = try container.decodeIfPresent(String.self, forKey: .rt)
+        rw = try container.decodeIfPresent(String.self, forKey: .rw)
         
         // Handle date decoding with custom date formatter
         let dateFormatter = ISO8601DateFormatter()

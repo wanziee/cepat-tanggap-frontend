@@ -122,6 +122,15 @@ struct ProfilePageView: View {
                         }
                         ProfileInfoRow(icon: "phone.fill", title: "No. HP", value: user.noHp ?? "-")
                         ProfileInfoRow(icon: "mappin.and.ellipse", title: "Alamat", value: user.alamat ?? "-")
+                        
+                        HStack(spacing: 20) {
+                            if let rt = user.rt, !rt.isEmpty {
+                                ProfileInfoRow(icon: "house.fill", title: "RT", value: rt)
+                            }
+                            if let rw = user.rw, !rw.isEmpty {
+                                ProfileInfoRow(icon: "building.2.fill", title: "RW", value: rw)
+                            }
+                        }
                     }
                 }
                 
@@ -169,7 +178,9 @@ struct ProfilePageView: View {
         nama: "John Doe",
         role: "warga",
         alamat: "Jl. Contoh No. 123",
-        noHp: "081234567890"
+        noHp: "081234567890",
+        rt: "001",
+        rw: "001"
     )
     
     return ProfilePageView()

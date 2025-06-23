@@ -6,6 +6,7 @@ struct ContentView: View {
     var body: some View {
         if authViewModel.isAuthenticated {
             DashboardView()
+                .environmentObject(AuthViewModel())
         } else {
             SplashView()
         }

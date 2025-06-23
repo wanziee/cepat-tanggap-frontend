@@ -16,7 +16,7 @@ extension Laporan {
                 //kostan: http://192.168.0.107:3000/api
                 //kontrakan:http://192.168.100.12:3000/api
                 
-                return URL(string: "http://192.168.0.107:3000\(foto)")
+                return URL(string: "http://192.168.100.15:3000\(foto)")
             }
         }
         return nil
