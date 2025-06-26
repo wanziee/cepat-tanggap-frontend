@@ -9,7 +9,7 @@ struct ProfileInfoRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .frame(width: 24)
-                .foregroundColor(.blue)
+                .foregroundColor(Color("AccentColor"))
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -105,9 +105,19 @@ struct ProfilePageView: View {
                                     .font(.title3)
                                     .fontWeight(.medium)
                                 
-                                Text(user.role.capitalized)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                HStack {
+                                    Text(user.role.capitalized)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Text("RW \(user.rw ?? "")")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+
+                                    Text("RT \(user.rt ?? "")")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+
+                                }
                             }
                             .padding(.vertical, 16)
                             Spacer()
@@ -123,15 +133,9 @@ struct ProfilePageView: View {
                         ProfileInfoRow(icon: "phone.fill", title: "No. HP", value: user.noHp ?? "-")
                         ProfileInfoRow(icon: "mappin.and.ellipse", title: "Alamat", value: user.alamat ?? "-")
                         
-                        HStack(spacing: 20) {
-                            if let rt = user.rt, !rt.isEmpty {
-                                ProfileInfoRow(icon: "house.fill", title: "RT", value: rt)
-                            }
-                            if let rw = user.rw, !rw.isEmpty {
-                                ProfileInfoRow(icon: "building.2.fill", title: "RW", value: rw)
-                            }
-                        }
+                      
                     }
+                    
                 }
                 
                 Section {

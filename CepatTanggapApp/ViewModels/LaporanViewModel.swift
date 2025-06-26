@@ -11,13 +11,29 @@ class LaporanViewModel: ObservableObject {
     var laporanId: Int?
     var filterUserId: Int?
     var fetchAll = false
+    var filteredLaporan: [Laporan] {
+        var reports = laporanList
+
+        // Filter berdasarkan user jika filterUserId di-set
+        if let uid = filterUserId {
+            reports = reports.filter { $0.userId == uid }
+        }
+
+        // Filter berdasarkan status jika ada selectedStatus
+        if let status = selectedStatus {
+            reports = reports.filter { $0.status == status }
+        }
+
+        return reports
+    }
+
     
     
     //kostan: http://192.168.0.107:3000/api
     //kontrakan:http://192.168.100.12:3000/api
     
     
-    private let baseURL = "http://192.168.100.15:3000/api"
+    private let baseURL = "http://localhost:3000/api"
 
     // MARK: - Fetch Laporan
     

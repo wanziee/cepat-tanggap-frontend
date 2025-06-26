@@ -12,15 +12,12 @@ final class AuthViewModel: ObservableObject {
     // kostan http://192.168.0.107:3000/api
     //kontrakan:http://192.168.100.12:3000/api
     
-    public let baseURL = "http://192.168.100.15:3000/api"
+    public let baseURL = "http://localhost:3000/api"
     private var cancellables = Set<AnyCancellable>()
     
     init() {
         checkAuth()
     }
-    
-    
-    
     
     // MARK: - Implementation moved to extensions
     
@@ -443,3 +440,4 @@ final class AuthViewModel: ObservableObject {
         }
     }
 }
+

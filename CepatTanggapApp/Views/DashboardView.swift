@@ -8,66 +8,105 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var viewModel = LaporanViewModel()
+
     var body: some View {
-        VStack{
-            HeaderView()
-            
-            GeometryReader{ _ in
-                
-                HStack{
+        VStack {
+            HeaderView(viewModel: viewModel, authViewModel: authViewModel)
+
+            GeometryReader { _ in
+                VStack(alignment: .leading) {
                     Text("Riwayat Laporan")
                         .font(.headline)
-                }
-                .padding(20)
-                
-                
-                
-                ScrollView(.vertical){
-                    VStack{
-                        LaporanHistoryCard(category: "Jalan", deskripsi: "fjkalsjdf alsdf kslad flskdkflsa ", tanggal: "02/04/2025")
+                        .padding(.top, 20)
+                        .padding(.horizontal, 20)
+
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        ScrollView(.vertical) {
+                            VStack(spacing: 12) {
+                                ForEach(viewModel.laporanList.prefix(5)) { laporan in
+                                    LaporanHistoryCard(
+                                        category: laporan.kategori.rawValue,
+                                        deskripsi: laporan.deskripsi,
+                                        tanggal: formatDate(from: laporan.createdAt)
+                                    )
+                                }
+                                
+                                VStack{
+                                    
+                                }
+                                .frame(width: 30, height: 120)
+                            }
+
+                            .padding(.horizontal, 20)
+                            .padding(.top, 3)
+                        }
+
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 3)
-                    
-
                 }
-                .padding(.top, 60)
-
+                
             }
             .background(Color.white)
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30,bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 30 ))
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 30))
             .ignoresSafeArea(.all, edges: .bottom)
-            
-            
         }
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.darkBlue,Color.darkBlue,Color.darkBlue,Color.lightBlue,Color.lightBlue]),
+                gradient: Gradient(colors: [Color.darkBlue, Color.darkBlue, Color.darkBlue, Color.lightBlue, Color.lightBlue]),
                 startPoint: .bottom,
                 endPoint: .top
             )
         )
+        .onAppear {
+            viewModel.fetchLaporan()
+        }
+    }
 
-
+    // Ubah String ISO8601 (ex: "2023-01-01T00:00:00Z") menjadi format lokal
+    func formatDate(from string: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        if let date = isoFormatter.date(from: string) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            return formatter.string(from: date)
+        } else {
+            return "Tanggal tidak valid"
+        }
     }
 }
 
 #Preview {
     DashboardView()
+        .environmentObject(AuthViewModel()) // Tambahkan ini agar tidak crash
 }
 
 
-func HeaderView() -> some View{
-    VStack{
-        HStack{
-            VStack(alignment: .leading){
-                Text("Hai, Tania!")
-                    .font(.system(size: 25))
+func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel) -> some View {
+    let total = viewModel.laporanList.count
+    let proses = viewModel.laporanList.filter { $0.status == .diproses }.count
+    let selesai = viewModel.laporanList.filter { $0.status == .selesai }.count
+    
+    let nama = authViewModel.currentUser?.nama ?? "Warga"
+    let rt = authViewModel.currentUser?.rt ?? "-"
+    let rw = authViewModel.currentUser?.rw ?? "-"
+
+
+    return VStack {
+        HStack {
+            VStack(alignment: .leading) {
+                Text("Hai, \(nama)!")
+                    .font(.system(size: 20))
                     .fontWeight(.bold)
 
-                Text("RT.03 RW.004")
+                Text(" RW.\(rw), RT.\(rt)")
                     .font(.caption)
             }
+            .frame(maxWidth: 250, alignment: .leading)
             Spacer()
             Image(systemName: "bell.fill")
                 .font(.system(size: 25))
@@ -78,40 +117,31 @@ func HeaderView() -> some View{
         .background(Color.lightBlue)
         .shadow(color: Color.veryDarkBlue, radius: 5)
         
-        
-            
-            
 
-        
-        
-        
         VStack(spacing: 20) {
             Text("Informasi Terkini")
                 .foregroundStyle(Color.white)
                 .font(.headline)
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             HStack(spacing: 16) {
                 VStack(alignment: .leading) {
-                    Text("Laporan Anda (3)")
+                    Text("Laporan Anda (\(total))")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                    
-                    Text("1 Proses, 2 Selesai")
+
+                    Text("\(proses) Proses, \(selesai) Selesai")
                         .font(.system(size: 11))
                         .fontWeight(.light)
                         .foregroundColor(.white)
-                    
-                    
-                    
+
                     HStack {
                         Spacer()
                         Image("megaphone")
                             .resizable()
                             .scaledToFit()
-                        
                         Spacer()
                     }
                 }
@@ -120,28 +150,23 @@ func HeaderView() -> some View{
                 .frame(height: 150)
                 .background(Color("veryDarkBlue"))
                 .cornerRadius(20)
-                
-                
-                
+
                 VStack(alignment: .leading) {
                     Text("Saldo Kas")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                    
+
                     Text("Rp. 10.000.000")
                         .font(.system(size: 11))
                         .fontWeight(.light)
                         .foregroundColor(.white)
-                    
-                    
-                    
+
                     HStack {
                         Spacer()
                         Image("wallet")
                             .resizable()
                             .scaledToFit()
-                        
                         Spacer()
                     }
                 }
@@ -154,9 +179,5 @@ func HeaderView() -> some View{
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
-
-        
-        
     }
-    
 }

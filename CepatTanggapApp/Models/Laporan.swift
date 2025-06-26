@@ -11,25 +11,27 @@ struct Laporan: Codable, Identifiable {
     let status: StatusLaporan
     let createdAt: String
     let updatedAt: String
+    let kdLaporan: String?            // ✅ Tambahan
+    let isAnonymous: Bool?             // ✅ Tambahan
     let user: User
     let logStatus: [LogStatus]?
-    
-    // No need for manual encoding/decoding
-    // The default Codable implementation with convertFromSnakeCase will handle everything
-    // Make sure to set the keyDecodingStrategy to .convertFromSnakeCase when decoding JSON
 
-    // Convenience initializer (digunakan di Preview / pembuatan dummy)
-    init(id: Int,
-         userId: Int,
-         kategori: KategoriLaporan,
-         deskripsi: String,
-         foto: String? = nil,
-         lokasi: String? = nil,
-         status: StatusLaporan = .pending,
-         createdAt: String,
-         updatedAt: String,
-         user: User,
-         logStatus: [LogStatus]? = nil) {
+    // Convenience initializer (digunakan di Preview / dummy)
+    init(
+        id: Int,
+        userId: Int,
+        kategori: KategoriLaporan,
+        deskripsi: String,
+        foto: String? = nil,
+        lokasi: String? = nil,
+        status: StatusLaporan = .pending,
+        createdAt: String,
+        updatedAt: String,
+        kdLaporan: String,
+        isAnonymous: Bool,
+        user: User,
+        logStatus: [LogStatus]? = nil
+    ) {
         self.id = id
         self.userId = userId
         self.kategori = kategori
@@ -39,13 +41,29 @@ struct Laporan: Codable, Identifiable {
         self.status = status
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.kdLaporan = kdLaporan
+        self.isAnonymous = isAnonymous
         self.user = user
         self.logStatus = logStatus
     }
 
     static var sample: Laporan {
         let user = User(id: 1, nik: "000", nama: "Sample", role: "warga", alamat: nil)
-        return Laporan(id: 1, userId: 1, kategori: .fasilitasUmum, deskripsi: "Desc", createdAt: "2023-01-01T00:00:00Z", updatedAt: "2023-01-01T00:00:00Z", user: user)
+        return Laporan(
+            id: 1,
+            userId: 1,
+            kategori: .fasilitasUmum,
+            deskripsi: "Contoh laporan fasilitas umum",
+            foto: "contoh_foto",
+            lokasi: "Jl. Contoh No. 123",
+            status: .pending,
+            createdAt: "2023-01-01T00:00:00Z",
+            updatedAt: "2023-01-01T00:00:00Z",
+            kdLaporan: "LAP20230101001",
+            isAnonymous: false,
+            user: user,
+            logStatus: []
+        )
     }
 }
 
@@ -55,22 +73,23 @@ struct LogStatus: Codable, Identifiable {
     let status: StatusLaporan
     let userId: Int
     let waktu: String
+    let tanggapan: String?
+    let foto: String?
     let user: User
-    
-    // No need for manual CodingKeys
-    // Will be handled by convertFromSnakeCase
 }
 
 enum StatusLaporan: String, Codable, CaseIterable {
     case pending = "pending"
     case diproses = "diproses"
     case selesai = "selesai"
+    case ditolak = "ditolak"
 
     var displayName: String {
         switch self {
         case .pending: return "Menunggu"
         case .diproses: return "Diproses"
         case .selesai: return "Selesai"
+        case .ditolak: return "Ditolak"
         }
     }
 
@@ -79,20 +98,23 @@ enum StatusLaporan: String, Codable, CaseIterable {
         case .pending: return "orange"
         case .diproses: return "blue"
         case .selesai: return "green"
+        case .ditolak: return "red"
         }
     }
 
     var uiColor: Color {
         switch self {
-        case .pending: return Color.orange
-        case .diproses: return Color.blue
-        case .selesai: return Color.green
+        case .pending: return .orange
+        case .diproses: return .blue
+        case .selesai: return .green
+        case .ditolak: return .red
         }
     }
 }
 
 enum KategoriLaporan: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
+
     case fasilitasUmum = "Fasilitas Umum"
     case jalanTransportasi = "Jalan & Transportasi"
     case sampahKebersihan = "Sampah & Kebersihan"
@@ -100,6 +122,7 @@ enum KategoriLaporan: String, Codable, CaseIterable, Identifiable {
     case keamanan = "Keamanan"
     case kesehatan = "Kesehatan"
     case listrikPJU = "Listrik & PJU"
+    case parkirLiar = "Parkir Liar"
     case bangunanLiar = "Bangunan Liar"
     case lingkunganSosial = "Lingkungan Sosial"
     case lainnya = "Lainnya"
@@ -109,3 +132,4 @@ struct LaporanListResponse: Codable {
     let message: String?
     let data: [Laporan]
 }
+

@@ -18,16 +18,21 @@ struct NewLaporanView: View {
     @State private var isShowingCamera = false
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
+    @State private var deskripsiTooShort = false
     
     @State private var selectedRW = 1
     @State private var selectedRT = 1
     private let rwRange = 1...5
     private let rtRange = 1...10
     
+    var jumlahHuruf: Int {
+        deskripsi.count
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack (spacing: 18){
+                VStack(spacing: 18) {
                     
                     informasiSection()
                     
@@ -35,22 +40,21 @@ struct NewLaporanView: View {
                     
                     imagePickerSection()
                     
-                    
-                    Section {
-                        Button(action: {
+                    Button(action: {
+                        if jumlahHuruf < 40 {
+                            deskripsiTooShort = true
+                        } else {
                             saveLaporan()
-                        }) {
-                            Text("Buat Laporan")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.accentColor)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
                         }
-                        .disabled(deskripsi.isEmpty || laporanViewModel.isLoading)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                    }) {
+                        Text("Buat Laporan")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
+                    .disabled(deskripsi.isEmpty || laporanViewModel.isLoading)
                     
                     Spacer()
                 }
@@ -81,35 +85,27 @@ struct NewLaporanView: View {
                     Button("OK") {
                         laporanViewModel.errorMessage = nil
                     }
-                }
-                message: {
+                } message: {
                     Text(laporanViewModel.errorMessage ?? "Terjadi kesalahan")
                 }
+                .alert("Deskripsi Terlalu Pendek", isPresented: $deskripsiTooShort) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Deskripsi laporan harus minimal 40 huruf.")
+                }
             }
-            
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(UIColor.secondarySystemBackground))
-            
         }
     }
     
-    
-    
-    
-    
-    
-    
+    // MARK: - Informasi Section
     @ViewBuilder
     func informasiSection() -> some View {
         VStack(spacing: 0) {
-            // Kategori
             HStack {
-                Text("Kategori")
-                    .foregroundColor(.black)
-                
-                
+                Text("Kategori").foregroundColor(.black)
                 Spacer()
-                
                 Picker("", selection: $selectedKategori) {
                     ForEach(KategoriLaporan.allCases) { kat in
                         Text(kat.rawValue).tag(kat)
@@ -121,14 +117,9 @@ struct NewLaporanView: View {
             
             Divider()
             
-            // RW
             HStack {
-                Text("RW")
-                    .foregroundColor(.black)
-                    .frame(width: 80, alignment: .leading)
-                
+                Text("RW").foregroundColor(.black).frame(width: 80, alignment: .leading)
                 Spacer()
-                
                 Picker("", selection: $selectedRW) {
                     ForEach(rwRange, id: \.self) { rw in
                         Text("RW \(rw)").tag(rw)
@@ -140,14 +131,9 @@ struct NewLaporanView: View {
             
             Divider()
             
-            // RT
             HStack {
-                Text("RT")
-                    .foregroundColor(.black)
-                    .frame(width: 80, alignment: .leading)
-                
+                Text("RT").foregroundColor(.black).frame(width: 80, alignment: .leading)
                 Spacer()
-                
                 Picker("", selection: $selectedRT) {
                     ForEach(rtRange, id: \.self) { rt in
                         Text("RT \(rt)").tag(rt)
@@ -159,7 +145,6 @@ struct NewLaporanView: View {
             
             Divider()
             
-            // Lokasi
             HStack {
                 Button(action: {
                     selectedCoordinate = nil
@@ -176,8 +161,7 @@ struct NewLaporanView: View {
                                 .multilineTextAlignment(.leading)
                         }
                         Spacer()
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundColor(.blue)
+                        Image(systemName: "mappin.and.ellipse").foregroundColor(.blue)
                     }
                     .padding(.bottom, 8)
                 }
@@ -195,13 +179,20 @@ struct NewLaporanView: View {
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
-    
+
+    // MARK: - Deskripsi Section
     @ViewBuilder
-    func deskripsiSection() -> some View{
+    func deskripsiSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Deskripsi")
-                .foregroundColor(.black)
-                .padding(.bottom, 5)
+            HStack {
+                Text("Deskripsi")
+                    .foregroundColor(.black)
+                Spacer()
+                Text("\(jumlahHuruf)/40")
+                    .font(.subheadline)
+                    .foregroundColor(Color.gray)
+            }
+            .padding(.bottom, 5)
             
             ZStack(alignment: .topLeading) {
                 if deskripsi.isEmpty {
@@ -227,14 +218,11 @@ struct NewLaporanView: View {
         .background(Color.white)
         .cornerRadius(15)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        
     }
-    
+
+    // MARK: - Image Picker Section
     @ViewBuilder
     func imagePickerSection() -> some View {
-        
-        
-        
         VStack {
             if let image = selectedImage {
                 Image(uiImage: image)
@@ -248,7 +236,8 @@ struct NewLaporanView: View {
                                 .foregroundColor(.red)
                                 .background(Color.white)
                                 .clipShape(Circle())
-                        }.padding(4),
+                        }
+                        .padding(4),
                         alignment: .topTrailing
                     )
             } else {
@@ -262,20 +251,17 @@ struct NewLaporanView: View {
                                 .stroke(style: StrokeStyle(lineWidth: 1, dash: [8]))
                                 .foregroundColor(Color("borderForm"))
                         )
-
                     VStack(spacing: 8) {
                         Image(systemName: "camera")
                             .font(.system(size: 40))
                             .foregroundColor(.gray)
-
                         Text("Tambah Foto")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }
                 }
-
-
             }
+            
             HStack {
                 Button(action: { isImagePickerPresented = true }) {
                     HStack {
@@ -300,16 +286,11 @@ struct NewLaporanView: View {
         .padding()
         .background(Color.white)
         .cornerRadius(15)
-        
-        
-        
-        
     }
-    
-    
+
+    // MARK: - Helper
     private func fetchAlamat() {
         guard let coordinate = selectedCoordinate else { return }
-        
         isGeocoding = true
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         CLGeocoder().reverseGeocodeLocation(location) { placemarks, error in
@@ -326,11 +307,10 @@ struct NewLaporanView: View {
             }
         }
     }
-    
+
     private func saveLaporan() {
         let fullLokasi = "RW \(selectedRW), RT \(selectedRT)"
         let finalLokasi = lokasi.isEmpty ? fullLokasi : "\(fullLokasi), \(lokasi)"
-        
         laporanViewModel.createLaporan(
             kategori: selectedKategori.rawValue,
             deskripsi: deskripsi,

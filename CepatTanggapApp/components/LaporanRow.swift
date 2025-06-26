@@ -1,24 +1,16 @@
-//
-//  LaporanRow.swift
-//  CepatTanggapApp
-//
-//  Created by mohammad ichwan al ghifari on 14/06/25.
-//
-
 import SwiftUI
-
 
 struct LaporanRow: View {
     let laporan: Laporan
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(laporan.kategori.rawValue)
                         .font(.headline)
-                        .foregroundColor(.primary) // Ensure text is fully opaque
-                    
+                        .foregroundColor(.primary)
+
                     if let lokasi = laporan.lokasi, !lokasi.isEmpty {
                         HStack {
                             Image(systemName: "mappin.and.ellipse")
@@ -30,9 +22,9 @@ struct LaporanRow: View {
                         .foregroundColor(.gray)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Text(laporan.status.displayName)
                     .font(.caption)
                     .fontWeight(.semibold)
@@ -42,29 +34,31 @@ struct LaporanRow: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
-            
+
             if !laporan.deskripsi.isEmpty {
                 Text(laporan.deskripsi)
                     .font(.subheadline)
-                    .foregroundColor(.primary.opacity(0.8)) // Slightly dimmed but still clear
+                    .foregroundColor(.primary.opacity(0.8))
                     .lineLimit(2)
             }
-            
-            if let url = laporan.fullFotoURL{
+
+            if let url = laporan.fullFotoURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
                         ProgressView()
-                            .frame(height: 120)
+                            .frame(height: 200)
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(height: 120)
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
                             .clipped()
                     case .failure:
                         Image(systemName: "photo")
-                            .frame(height: 120)
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
                             .background(Color.gray.opacity(0.2))
                     @unknown default:
                         EmptyView()
@@ -72,22 +66,24 @@ struct LaporanRow: View {
                 }
                 .cornerRadius(8)
             }
-            
+
             HStack {
                 Text("Oleh: \(laporan.user.nama)")
                     .font(.caption2)
                     .foregroundColor(.gray)
-                
+
                 Spacer()
-                
+
                 Text(formatDate(laporan.createdAt))
                     .font(.caption2)
                     .foregroundColor(.gray)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white) // Ganti dari merah ke putih (seperti Instagram)
     }
-    
+
     private func formatDate(_ dateString: String) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
@@ -99,6 +95,3 @@ struct LaporanRow: View {
         return dateString
     }
 }
-
-
-
