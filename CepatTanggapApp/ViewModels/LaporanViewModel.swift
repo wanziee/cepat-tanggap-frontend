@@ -8,6 +8,9 @@ class LaporanViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedStatus: StatusLaporan?
     @Published var currentLaporan: Laporan?
+    @AppStorage("hasNewNotification") var hasNewNotification: Bool = false
+    @AppStorage("lastSeenNotificationDate") var lastSeenNotificationDate: String = ""
+
     var laporanId: Int?
     var filterUserId: Int?
     var fetchAll = false
@@ -91,7 +94,28 @@ class LaporanViewModel: ObservableObject {
                         decoder.dateDecodingStrategy = .iso8601
                         let response = try decoder.decode(LaporanListResponse.self, from: data)
                         let list = response.data
+
+                        // Cek apakah ada logStatus baru
+                        let laporanLama = self?.laporanList ?? []
+                        var hasNew = false
+
+                        for baru in list {
+                            if let lama = laporanLama.first(where: { $0.id == baru.id }) {
+                                let jumlahLogLama = lama.logStatus?.count ?? 0
+                                let jumlahLogBaru = baru.logStatus?.count ?? 0
+                                if jumlahLogBaru > jumlahLogLama {
+                                    hasNew = true
+                                    break
+                                }
+                            } else if baru.logStatus?.isEmpty == false {
+                                hasNew = true
+                                break
+                            }
+                        }
+
+                        self?.hasNewNotification = hasNew
                         self?.laporanList = list
+                        
                     } catch {
                         if let raw = String(data: data, encoding: .utf8) {
                             print("Raw JSON:\n", raw)
@@ -100,10 +124,13 @@ class LaporanViewModel: ObservableObject {
                         print("Decoding error:", error)
                     }
                 }
+
             }
         }.resume()
     }
     
+    
+
 
     // MARK: - Create Laporan
     

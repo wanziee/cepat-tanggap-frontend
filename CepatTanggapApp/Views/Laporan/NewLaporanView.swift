@@ -19,6 +19,7 @@ struct NewLaporanView: View {
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
     @State private var deskripsiTooShort = false
+    @State private var lokasiKosong = false
     
     @State private var selectedRW = 1
     @State private var selectedRT = 1
@@ -43,7 +44,10 @@ struct NewLaporanView: View {
                     Button(action: {
                         if jumlahHuruf < 40 {
                             deskripsiTooShort = true
-                        } else {
+                        } else if lokasi.isEmpty{
+                            lokasiKosong = true
+                        }
+                        else {
                             saveLaporan()
                         }
                     }) {
@@ -54,7 +58,7 @@ struct NewLaporanView: View {
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
-                    .disabled(deskripsi.isEmpty || laporanViewModel.isLoading)
+                    .disabled(deskripsi.isEmpty || laporanViewModel.isLoading || lokasiKosong || deskripsi.count < 40)
                     
                     Spacer()
                 }
@@ -93,6 +97,12 @@ struct NewLaporanView: View {
                 } message: {
                     Text("Deskripsi laporan harus minimal 40 huruf.")
                 }
+                .alert("Lokasi Belum Diisi", isPresented: $lokasiKosong) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Silakan pilih lokasi terlebih dahulu sebelum mengirim laporan.")
+                }
+
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(UIColor.secondarySystemBackground))

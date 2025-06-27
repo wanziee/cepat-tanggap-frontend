@@ -10,59 +10,64 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = LaporanViewModel()
+    @AppStorage("hasNewNotification") private var hasNewNotification: Bool = true
+
+
 
     var body: some View {
-        VStack {
-            HeaderView(viewModel: viewModel, authViewModel: authViewModel)
-
-            GeometryReader { _ in
-                VStack(alignment: .leading) {
-                    Text("Riwayat Laporan")
-                        .font(.headline)
-                        .padding(.top, 20)
-                        .padding(.horizontal, 20)
-
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        ScrollView(.vertical) {
-                            VStack(spacing: 12) {
-                                ForEach(viewModel.laporanList.prefix(5)) { laporan in
-                                    LaporanHistoryCard(
-                                        category: laporan.kategori.rawValue,
-                                        deskripsi: laporan.deskripsi,
-                                        tanggal: formatDate(from: laporan.createdAt)
-                                    )
+        NavigationStack {
+            VStack {
+                HeaderView(viewModel: viewModel, authViewModel: authViewModel, hasNewNotification: $hasNewNotification)
+                
+                GeometryReader { _ in
+                    VStack(alignment: .leading) {
+                        Text("Riwayat Laporan")
+                            .font(.headline)
+                            .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                        
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            ScrollView(.vertical) {
+                                VStack(spacing: 12) {
+                                    ForEach(viewModel.laporanList.prefix(5)) { laporan in
+                                        LaporanHistoryCard(
+                                            category: laporan.kategori.rawValue,
+                                            deskripsi: laporan.deskripsi,
+                                            tanggal: formatDate(from: laporan.createdAt)
+                                        )
+                                    }
+                                    
+                                    VStack{
+                                        
+                                    }
+                                    .frame(width: 30, height: 120)
                                 }
                                 
-                                VStack{
-                                    
-                                }
-                                .frame(width: 30, height: 120)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 3)
                             }
-
-                            .padding(.horizontal, 20)
-                            .padding(.top, 3)
+                            
                         }
-
                     }
+                    
                 }
-                
+                .background(Color.white)
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 30))
+                .ignoresSafeArea(.all, edges: .bottom)
             }
-            .background(Color.white)
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 30))
-            .ignoresSafeArea(.all, edges: .bottom)
-        }
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [Color.darkBlue, Color.darkBlue, Color.darkBlue, Color.lightBlue, Color.lightBlue]),
-                startPoint: .bottom,
-                endPoint: .top
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.darkBlue, Color.darkBlue, Color.darkBlue, Color.lightBlue, Color.lightBlue]),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
             )
-        )
-        .onAppear {
-            viewModel.fetchLaporan()
+            .onAppear {
+                viewModel.fetchLaporan()
+            }
         }
     }
 
@@ -86,7 +91,7 @@ struct DashboardView: View {
 }
 
 
-func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel) -> some View {
+func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel, hasNewNotification: Binding<Bool>) -> some View {
     let total = viewModel.laporanList.count
     let proses = viewModel.laporanList.filter { $0.status == .diproses }.count
     let selesai = viewModel.laporanList.filter { $0.status == .selesai }.count
@@ -108,8 +113,20 @@ func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel) -> so
             }
             .frame(maxWidth: 250, alignment: .leading)
             Spacer()
-            Image(systemName: "bell.fill")
-                .font(.system(size: 25))
+            NavigationLink(destination: NotificationView(laporanList: viewModel.laporanList, hasNewNotification: hasNewNotification)) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 25))
+                    
+                    if hasNewNotification.wrappedValue {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 10, height: 10)
+                            .offset(x: 8, y: -8)
+                    }
+                }
+            }
+
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 15)
@@ -152,7 +169,7 @@ func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel) -> so
                 .cornerRadius(20)
 
                 VStack(alignment: .leading) {
-                    Text("Saldo Kas")
+                    Text("Saldo Kas RT")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)

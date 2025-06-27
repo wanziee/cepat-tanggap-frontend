@@ -26,6 +26,12 @@ struct MainTabView: View {
                     Label("Laporan Warga", systemImage: "person.3")
                 }
             
+            KasRTView()
+                .environmentObject(authViewModel)
+                .tabItem {
+                    Label("Kas RT", systemImage: "person.3")
+                }
+            
             ProfilePageView()
                 .environmentObject(authViewModel)
                 .tabItem {

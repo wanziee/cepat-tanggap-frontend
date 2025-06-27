@@ -22,6 +22,7 @@ struct LaporanWargaView: View {
                     LaporanListView(laporanList: vm.laporanList)
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("Laporan Warga")
             .onAppear {
                 vm.filterUserId = nil

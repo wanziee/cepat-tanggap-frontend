@@ -4,6 +4,7 @@ import Combine
 
 final class AuthViewModel: ObservableObject {
     @Published var isAuthenticated = false
+    @Published var isCheckingAuth = true
     @Published var currentUser: User?
     @Published var errorMessage: String?
     @Published var isLoading = false
@@ -89,14 +90,25 @@ final class AuthViewModel: ObservableObject {
     }
     
     func checkAuth() {
-        if let _ = UserDefaults.standard.string(forKey: "authToken") {
-            fetchUserProfile()
+        isCheckingAuth = true
+        
+        guard let _ = UserDefaults.standard.string(forKey: "authToken") else {
+            // Tidak ada token, artinya belum login
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.isAuthenticated = false
+                self.isCheckingAuth = false
+            }
+            return
         }
+        
+        fetchUserProfile()
     }
-    
+
     func fetchUserProfile() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "\(baseURL)/auth/profile") else {
+            // Tambahkan ini agar SplashView tidak stuck jika URL tidak valid
+            self.isCheckingAuth = false
             return
         }
         
@@ -106,87 +118,38 @@ final class AuthViewModel: ObservableObject {
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
+                defer { self?.isCheckingAuth = false } // ✅ penting agar Splash hilang
+
                 if let error = error {
-                    print("Profile fetch error:", error.localizedDescription)
-                    self?.errorMessage = "Gagal mengambil profil"
-                    self?.setIsLoading(false)
+                    self?.errorMessage = error.localizedDescription
+                    self?.isAuthenticated = false
                     return
                 }
                 
-                guard response is HTTPURLResponse else {
-                    print("Invalid response")
-                    self?.errorMessage = "Respon server tidak valid"
-                    self?.setIsLoading(false)
+                guard let httpResponse = response as? HTTPURLResponse,
+                      (200...299).contains(httpResponse.statusCode),
+                      let data = data else {
+                    self?.isAuthenticated = false
                     return
                 }
-                
-                guard let data = data else {
-                    self?.errorMessage = "Tidak ada data yang diterima dari server"
-                    return
-                }
-                
-                // Cetak respons untuk debugging
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Fetch profile response:", responseString)
-                }
-                
+
                 do {
                     let decoder = JSONDecoder()
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
                     decoder.dateDecodingStrategy = .formatted(dateFormatter)
                     
-                    // Coba decode sebagai User langsung (untuk kompatibilitas ke belakang)
-                    if let user = try? decoder.decode(User.self, from: data) {
-                        DispatchQueue.main.async {
-                            self?.currentUser = user
-                            self?.isAuthenticated = true
-                            self?.setErrorMessage(nil)
-                        }
-                        return
-                    }
-                    
-                    // Jika tidak berhasil, coba decode sebagai response dengan struktur { data: User }
-                    if let response = try? decoder.decode([String: User].self, from: data),
-                       let user = response["data"] {
-                        DispatchQueue.main.async {
-                            self?.currentUser = user
-                            self?.isAuthenticated = true
-                            self?.setErrorMessage(nil)
-                        }
-                        return
-                    }
-                    
-                    // Jika masih gagal, coba decode sebagai ProfileUpdateResponse
-                    if let response = try? decoder.decode(ProfileUpdateResponse.self, from: data) {
-                        DispatchQueue.main.async {
-                            self?.currentUser = response.user
-                            self?.isAuthenticated = true
-                            self?.setErrorMessage(nil)
-                        }
-                        return
-                    }
-                    
-                    // Jika semua decode gagal
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Format respons tidak valid"])
-                    
+                    let response = try decoder.decode(User.self, from: data)
+                    self?.currentUser = response
+                    self?.isAuthenticated = true
                 } catch {
-                    print("Failed to decode user:", error)
-                    
-                    // Coba parse pesan error dari server
-                    if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let message = errorResponse["message"] as? String {
-                        self?.errorMessage = message
-                    } else {
-                        self?.errorMessage = "Gagal memproses data profil: \(error.localizedDescription)"
-                    }
+                    self?.isAuthenticated = false
+                    self?.errorMessage = "Gagal decode profil: \(error.localizedDescription)"
                 }
-                
-                self?.setIsLoading(false)
             }
         }.resume()
     }
-    
+
     // Method untuk mengecek apakah user bisa mengupdate status laporan
     func currentUserCanUpdateStatus() -> Bool {
         guard let role = currentUser?.role.lowercased() else { return false }

@@ -11,7 +11,7 @@ struct Laporan: Codable, Identifiable {
     let status: StatusLaporan
     let createdAt: String
     let updatedAt: String
-    let kdLaporan: String?            // ✅ Tambahan
+    let kdLaporan: String           // ✅ Tambahan
     let isAnonymous: Bool?             // ✅ Tambahan
     let user: User
     let logStatus: [LogStatus]?
@@ -132,4 +132,5 @@ struct LaporanListResponse: Codable {
     let message: String?
     let data: [Laporan]
 }
+
 

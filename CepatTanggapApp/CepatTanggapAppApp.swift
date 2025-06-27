@@ -6,12 +6,16 @@ struct CepatTanggapApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if authViewModel.isAuthenticated {
-                MainTabView()
-                    .environmentObject(authViewModel)
-            } else {
-                LoginView()
-                    .environmentObject(authViewModel)
+            Group {
+                if authViewModel.isCheckingAuth {
+                    SplashView()
+                } else if authViewModel.isAuthenticated {
+                    MainTabView()
+                        .environmentObject(authViewModel)
+                } else {
+                    LoginView()
+                        .environmentObject(authViewModel)
+                }
             }
         }
     }

@@ -77,7 +77,7 @@ struct MapPickerView: View {
                         .bold()
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color("AccentColor"))
                         .foregroundColor(.white)
                         .cornerRadius(14)
                         .shadow(color: Color.black.opacity(0.15), radius: 8, y: 3)

@@ -4,15 +4,20 @@ struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var nik = ""
     @State private var password = ""
+    @State private var isPasswordVisible = false
+
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 10) {
-                    Image(systemName: "exclamationmark.bubble.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+                    Image("logo")
+                        .resizable()
+                        .frame(width: 70, height: 70)
+                        .padding(30)
+                        .background(Color("AccentColor"))
+                        .clipShape(.circle)
                     
                     Text("Cepat Tanggap")
                         .font(.largeTitle)
@@ -27,20 +32,66 @@ struct LoginView: View {
                 
                 // Form
                 VStack(spacing: 16) {
-                    TextField("NIK", text: $nik)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disableAutocorrection(true)
-                        .autocapitalization(.none)
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    if let error = authViewModel.errorMessage {
-                        Text(error)
-                            .foregroundColor(.red)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("NIK")
                             .font(.caption)
+                            .foregroundColor(.black)
+
+                        TextField("Masukkan NIK", text: $nik)
+                            .keyboardType(.numberPad)
+                            .disableAutocorrection(true)
+                            .autocapitalization(.none)
+                            .padding(12)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black.opacity(0.4), lineWidth: 1)
+                            )
+                            .cornerRadius(10)
                     }
+
+                    
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Password")
+                            .font(.caption)
+                            .foregroundColor(.black)
+
+                        ZStack(alignment: .trailing) {
+                            Group {
+                                if isPasswordVisible {
+                                    TextField("Masukkan Password", text: $password)
+                                } else {
+                                    SecureField("Masukkan Password", text: $password)
+                                }
+                            }
+                            .disableAutocorrection(true)
+                            .autocapitalization(.none)
+                            .padding(12)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black.opacity(0.4), lineWidth: 1)
+                            )
+                            .cornerRadius(10)
+
+                            Button(action: {
+                                isPasswordVisible.toggle()
+                            }) {
+                                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 16)
+                            }
+                        }
+                    }
+
+
+                    
+//                    if let error = authViewModel.errorMessage {
+//                        Text(error)
+//                            .foregroundColor(.red)
+//                            .font(.caption)
+//                    }
                     
                     Button(action: login) {
                         if authViewModel.isLoading {
@@ -48,13 +99,18 @@ struct LoginView: View {
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
                             Text("Login")
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
+                                .padding(.vertical)
+                                .background(Color("AccentColor"))
+                                .cornerRadius(10)
+
                         }
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .padding(.top, 10)
                     .disabled(nik.isEmpty || password.isEmpty || authViewModel.isLoading)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 30)
                 
                 Spacer()
                 

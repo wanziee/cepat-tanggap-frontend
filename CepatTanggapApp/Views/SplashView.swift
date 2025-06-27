@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SplashView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
     var body: some View{
         VStack(spacing: 0) {
             
@@ -34,7 +35,7 @@ struct SplashView: View {
                         Text("Selamat Datang di")
                         Text("CEPAT TANGGAP")
                     }
-                    .foregroundStyle(Color("AccentColor"))
+                    .foregroundStyle(Color.black)
                     .font(.largeTitle)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -48,17 +49,17 @@ struct SplashView: View {
                     
                     Spacer()
                     
-                    NavigationLink{
-                        LoginView()
-                    } label: {
-                        Text("Masuk")
-                            .foregroundStyle(.white)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color("AccentColor"))
-                            .cornerRadius(10)
-                    }
+//                    NavigationLink{
+//                        LoginView()
+//                    } label: {
+//                        Text("Masuk")
+//                            .foregroundStyle(.white)
+//                            .fontWeight(.bold)
+//                            .frame(maxWidth: .infinity)
+//                            .padding()
+//                            .background(Color("AccentColor"))
+//                            .cornerRadius(10)
+//                    }
                 }
                 .padding(.vertical, 50)
                 .padding(.horizontal, 30)
