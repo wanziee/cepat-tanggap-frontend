@@ -23,7 +23,7 @@ struct StatusHeaderView: View {
                 .foregroundColor(.white)
                 .cornerRadius(12)
 
-            Spacer()
+            
 
             if canUpdate {
                 Menu {

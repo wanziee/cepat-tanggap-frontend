@@ -19,7 +19,7 @@ struct LaporanWargaView: View {
                         vm.fetchLaporan()
                     })
                 } else {
-                    LaporanListView(laporanList: vm.laporanList)
+                    LaporanListView(laporanList: vm.laporanList, isLaporanWarga: true)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

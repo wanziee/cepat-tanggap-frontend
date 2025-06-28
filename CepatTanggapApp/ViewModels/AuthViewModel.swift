@@ -3,8 +3,13 @@ import SwiftUI
 import Combine
 
 final class AuthViewModel: ObservableObject {
+//    @Published var isAuthenticated = false
+//    @Published var isCheckingAuth = true
+    @AppStorage("authToken") private var authToken: String?
     @Published var isAuthenticated = false
     @Published var isCheckingAuth = true
+
+
     @Published var currentUser: User?
     @Published var errorMessage: String?
     @Published var isLoading = false
@@ -92,23 +97,21 @@ final class AuthViewModel: ObservableObject {
     func checkAuth() {
         isCheckingAuth = true
         
-        guard let _ = UserDefaults.standard.string(forKey: "authToken") else {
-            // Tidak ada token, artinya belum login
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                self.isAuthenticated = false
-                self.isCheckingAuth = false
-            }
-            return
+        if let _ = authToken {
+            fetchUserProfile()
+        } else {
+            isAuthenticated = false
+            isCheckingAuth = false
         }
-        
-        fetchUserProfile()
     }
+
+
 
     func fetchUserProfile() {
         guard let token = UserDefaults.standard.string(forKey: "authToken"),
               let url = URL(string: "\(baseURL)/auth/profile") else {
             // Tambahkan ini agar SplashView tidak stuck jika URL tidak valid
-            self.isCheckingAuth = false
+
             return
         }
         
@@ -118,7 +121,8 @@ final class AuthViewModel: ObservableObject {
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
-                defer { self?.isCheckingAuth = false } // ✅ penting agar Splash hilang
+                defer { self?.isCheckingAuth = false }
+
 
                 if let error = error {
                     self?.errorMessage = error.localizedDescription

@@ -5,11 +5,16 @@ struct LaporanDetailView: View {
     @StateObject private var viewModel = LaporanViewModel()
     @State private var selectedStatus: StatusLaporan
     @State private var showingStatusUpdateAlert = false
+    @State private var showingDeleteAlert = false
+    @State var isLaporanWarga : Bool = false
+    
+    @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     
-    init(laporan: Laporan) {
+    init(laporan: Laporan, isLaporanWarga: Bool = false) {
         self.laporan = laporan
         _selectedStatus = State(initialValue: laporan.status)
+        self._isLaporanWarga = State(initialValue: isLaporanWarga)
     }
     
     var body: some View {
@@ -20,16 +25,39 @@ struct LaporanDetailView: View {
                     
                     ZStack{
                         Group {
-                            if let url = laporan.fullFotoURL{
+                            if let foto = laporan.foto, !foto.isEmpty, let url = laporan.fullFotoURL {
+                                // Jika foto tersedia, tampilkan seperti biasa
                                 AsyncImage(url: url) { image in
-                                    image.resizable().aspectRatio(contentMode: .fill)
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
                                 } placeholder: {
                                     ZStack {
                                         Color.gray.opacity(0.2)
                                         ProgressView()
                                     }
                                 }
-                            } 
+                            } else {
+                                // Jika foto kosong atau nil
+                                ZStack {
+                                    Color.gray.opacity(0.2)
+                                    
+                                    VStack {
+                                        Image(systemName: "photo")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.gray)
+                                        
+                                        Text("Tidak menyertakan foto")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                            .padding(.top, 4)
+                                    }
+                                }
+                            }
+
+
                         }
                         .frame(width: geometry.size.width, height: 265 + safeTop)
                         .clipped()
@@ -54,48 +82,83 @@ struct LaporanDetailView: View {
 
 
                 VStack(alignment: .leading, spacing: 16) {
-                    StatusHeaderView(
-                        status: laporan.status,
-                        canUpdate: viewModel.currentUserCanUpdateStatus(),
-                        onSelect: { status in
-                            selectedStatus = status
-                            showingStatusUpdateAlert = true
+                    
+                    HStack{
+                        VStack(alignment: .leading, spacing:5){
+                            Text("Id Laporan:")
+
+                                .fontWeight(.bold)
+                            Text(laporan.kdLaporan)
+                                .font(.callout)
                         }
+                        .padding(.top, 8)
+                        
+                        Spacer()
+                        
+                        StatusHeaderView(
+                            status: laporan.status,
+                            canUpdate: viewModel.currentUserCanUpdateStatus(),
+                            onSelect: { status in
+                                selectedStatus = status
+                                showingStatusUpdateAlert = true
+                            }
+                        )
+                    }
+                    .padding()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+
+                    
+                    VStack(spacing: 20){
+                        VStack(alignment: .leading, spacing:5){
+                            Text("Permasalahan:")
+                                .fontWeight(.bold)
+                            Text(laporan.deskripsi)
+                                .font(.callout)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+ 
+                        
+                        VStack(alignment: .leading, spacing:5){
+                            Text("Kategori:")
+                                .fontWeight(.bold)
+                            Text(laporan.kategori.rawValue)
+                                .font(.callout)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        
+                        VStack(alignment: .leading, spacing:5){
+                            Text("Lokasi:")
+                                .fontWeight(.bold)
+                            if let lokasi = laporan.lokasi, !lokasi.isEmpty {
+
+                                    Text(lokasi)
+
+                                    .font(.callout)
+
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+     
+
+
+
+                    }
+                    .padding()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
                     
-                    
-                    VStack(alignment: .leading, spacing:8){
-                        Text("Permasalahan:")
-                        Text(laporan.deskripsi)
-                            .font(.body)
-                    }
-                    .padding(.top, 10)
-                    
-                    VStack(alignment: .leading, spacing:8){
-                        Text("Kategori:")
-                        Text(laporan.kategori.rawValue)
-                            .font(.body)
-                    }
-                    .padding(.top, 10)
-                    
-                    VStack(alignment: .leading, spacing:8){
-                        Text("Lokasi:")
-                        if let lokasi = laporan.lokasi, !lokasi.isEmpty {
-
-                                Text(lokasi)
-
-                            .font(.body)
-
-                        }
-                    }
-                    .padding(.top, 10)
-
 
                     
 
 
                     Text("Oleh: \(laporan.user.nama) • \(formatDate(laporan.createdAt))")
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundColor(.gray)
 
 
@@ -135,6 +198,31 @@ struct LaporanDetailView: View {
         }
         .onAppear {
             viewModel.laporanId = laporan.id
+        }
+        .toolbar {
+            if !isLaporanWarga {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(role: .destructive) {
+                        showingDeleteAlert = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                }
+            }
+        }
+
+        .alert("Hapus Laporan?", isPresented: $showingDeleteAlert) {
+            Button("Batal", role: .cancel) {}
+            Button("Hapus", role: .destructive) {
+                viewModel.deleteLaporan(laporanId: laporan.id) { success in
+                    if success {
+                        dismiss()
+                        viewModel.fetchLaporan()
+                    }
+                }
+            }
+        } message: {
+            Text("Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.")
         }
     }
 

@@ -8,7 +8,7 @@ struct CepatTanggapApp: App {
         WindowGroup {
             Group {
                 if authViewModel.isCheckingAuth {
-                    SplashView()
+                    
                 } else if authViewModel.isAuthenticated {
                     MainTabView()
                         .environmentObject(authViewModel)
@@ -20,5 +20,4 @@ struct CepatTanggapApp: App {
         }
     }
 }
-
 

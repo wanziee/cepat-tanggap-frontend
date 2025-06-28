@@ -1,57 +1,72 @@
 import SwiftUI
 
 struct KasRTView: View {
-    @State private var laporanKas: [LaporanKas] = [
-        .init(id: 1, bulan: "Mei 2025", rt: "04/017", gambar: "test"),
-        .init(id: 2, bulan: "April 2025", rt: "04/017", gambar: "test"),
-        .init(id: 3, bulan: "Maret 2025", rt: "04/017", gambar: "test")
-    ]
-    
+    @StateObject private var viewModel = KasRTViewModel()
+
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 16) {
-                    ForEach(laporanKas) { laporan in
-                        laporanCard(for: laporan)
+                if viewModel.isLoading {
+                    ProgressView("Memuat data...")
+                        .padding()
+                } else if let error = viewModel.errorMessage {
+                    Text("Gagal memuat data: \(error)")
+                        .foregroundColor(.red)
+                        .padding()
+                } else if viewModel.kasList.isEmpty {
+                    Text("Belum ada data kas untuk RT Anda.")
+                        .padding()
+                } else {
+                    VStack(spacing: 16) {
+                        ForEach(viewModel.kasList) { kas in
+                            laporanCard(for: kas)
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("Kas RT")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                viewModel.fetchKas()
+            }
             .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
         }
     }
 
-    // MARK: - Kartu Tampilan
-    private func laporanCard(for laporan: LaporanKas) -> some View {
+    private func laporanCard(for kas: KasBulanan) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Image(laporan.gambar)
+            Image(systemName: "doc.richtext.fill")
                 .resizable()
-                .scaledToFill()
-                .frame(height: 180)
-                .clipped()
-//                .cornerRadius(12, corners: [.topLeft, .topRight])
-            
+                .scaledToFit()
+                .frame(height: 160)
+                .frame(maxWidth: .infinity)
+                .foregroundColor(.blue)
+                .background(Color.blue.opacity(0.1))
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Laporan Kas")
                     .font(.caption)
                     .foregroundColor(.accentColor)
                     .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("Bulan \(laporan.bulan)")
+                Text(kas.bulanFormatted)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 6) {
                     Image(systemName: "house.fill")
                         .foregroundColor(.accentColor)
-                    Text("RT \(laporan.rt)")
+                    Text("RT \(kas.relatedRt ?? "-") / RW \(kas.relatedRw ?? "-")")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                }
+
+                if let url = kas.fileUrl {
+                    Link("Lihat PDF", destination: url)
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                        .padding(.top, 4)
                 }
             }
             .padding()
@@ -60,13 +75,6 @@ struct KasRTView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 3)
     }
-}
-
-struct LaporanKas: Identifiable {
-    let id: Int
-    let bulan: String
-    let rt: String
-    let gambar: String
 }
 
 #Preview {

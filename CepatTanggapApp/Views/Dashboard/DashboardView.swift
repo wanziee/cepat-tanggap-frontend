@@ -95,6 +95,7 @@ func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel, hasNe
     let total = viewModel.laporanList.count
     let proses = viewModel.laporanList.filter { $0.status == .diproses }.count
     let selesai = viewModel.laporanList.filter { $0.status == .selesai }.count
+    let pending = viewModel.laporanList.filter { $0.status == .pending }.count
     
     let nama = authViewModel.currentUser?.nama ?? "Warga"
     let rt = authViewModel.currentUser?.rt ?? "-"
@@ -149,8 +150,8 @@ func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel, hasNe
                         .fontWeight(.bold)
                         .foregroundColor(.white)
 
-                    Text("\(proses) Proses, \(selesai) Selesai")
-                        .font(.system(size: 11))
+                    Text("\(pending) Pending, \(proses) Proses, \(selesai) Selesai")
+                        .font(.system(size: 8))
                         .fontWeight(.light)
                         .foregroundColor(.white)
 

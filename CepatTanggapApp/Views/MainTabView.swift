@@ -23,13 +23,13 @@ struct MainTabView: View {
             LaporanWargaView()
                 .environmentObject(authViewModel)
                 .tabItem {
-                    Label("Laporan Warga", systemImage: "person.3")
+                    Label("Laporan Warga", systemImage: "doc.on.doc.fill")
                 }
             
             KasRTView()
                 .environmentObject(authViewModel)
                 .tabItem {
-                    Label("Kas RT", systemImage: "person.3")
+                    Label("Kas RT", systemImage: "dollarsign.square.fill")
                 }
             
             ProfilePageView()

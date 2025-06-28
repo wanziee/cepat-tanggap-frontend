@@ -11,6 +11,7 @@ struct LaporanListView: View {
     let laporanList: [Laporan]
     var onDelete: ((Int) -> Void)? = nil
     var laporanSaya: Bool = false
+    var isLaporanWarga: Bool = false
     
     var body: some View {
         ScrollView (showsIndicators: false){
@@ -24,7 +25,7 @@ struct LaporanListView: View {
             }
 
             ForEach(Array(laporanList.enumerated()), id: \.element.id) { index, laporan in
-                NavigationLink(destination: LaporanDetailView(laporan: laporan)) {
+                NavigationLink(destination: LaporanDetailView(laporan: laporan, isLaporanWarga: isLaporanWarga)) {
                     LaporanRow(laporan: laporan)
                         .background(Color.white)
                 }
