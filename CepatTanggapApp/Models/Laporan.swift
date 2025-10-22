@@ -95,8 +95,8 @@ enum StatusLaporan: String, Codable, CaseIterable {
 
     var color: String {
         switch self {
-        case .pending: return "orange"
-        case .diproses: return "blue"
+        case .pending: return "blue"
+        case .diproses: return "orange"
         case .selesai: return "green"
         case .ditolak: return "red"
         }
@@ -104,8 +104,8 @@ enum StatusLaporan: String, Codable, CaseIterable {
 
     var uiColor: Color {
         switch self {
-        case .pending: return .orange
-        case .diproses: return .blue
+        case .pending: return .blue
+        case .diproses: return .orange
         case .selesai: return .green
         case .ditolak: return .red
         }

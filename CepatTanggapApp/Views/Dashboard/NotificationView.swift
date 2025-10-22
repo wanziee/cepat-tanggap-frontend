@@ -5,12 +5,6 @@
 //  Created by mohammad ichwan al ghifari on 27/06/25.
 //
 
-//
-//  NotificationView.swift
-//  CepatTanggapApp
-//
-//  Created by mohammad ichwan al ghifari on 27/06/25.
-//
 
 import SwiftUI
 
@@ -58,13 +52,19 @@ struct NotificationView: View {
                                             .font(.caption2)
                                             .foregroundColor(.gray)
                                     }
-                                    
-                                    if notification.message != "" {
-                                        Text(notification.message)
-                                            .font(.footnote)
-                                            .foregroundColor(.secondary)
+                                    HStack{
+                                        if notification.message != "" {
+                                            Text(notification.message)
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        if notification.foto != nil {
+                                            Text("(foto lampiran)")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
-
                                     Text("Kode Laporan: \(notification.kodeLaporan)")
                                         .font(.caption)
                                         .foregroundColor(.blue)
@@ -77,8 +77,6 @@ struct NotificationView: View {
                             
 
                                 Divider()
-                                    
-                            
                         }
                     }
                 }

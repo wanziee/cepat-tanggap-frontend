@@ -91,6 +91,7 @@ struct LaporanRow: View {
                     .scaledToFit()
                     .frame(height: 200)
                     .frame(maxWidth: .infinity)
+                    .foregroundStyle(Color.gray)
                     .background(Color.gray.opacity(0.2))
 
 
@@ -104,7 +105,7 @@ struct LaporanRow: View {
     // MARK: - Footer
     private var footerSection: some View {
         HStack {
-            Text("Oleh: \(laporan.user.nama)")
+            Text("Oleh: Warga")
                 .font(.caption2)
                 .foregroundColor(.gray)
 

@@ -1,7 +1,6 @@
 import SwiftUI
 
-
-struct LaporanDetailView: View {
+struct LaporanDetailViewV2: View {
     let laporan: Laporan
     @StateObject private var viewModel = LaporanViewModel()
     @State private var selectedStatus: StatusLaporan
@@ -24,6 +23,7 @@ struct LaporanDetailView: View {
     }
 
     var body: some View {
+        NavigationStack {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
                     GeometryReader { geometry in
@@ -126,14 +126,15 @@ struct LaporanDetailView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $navigateToFullImage) {
-                FullImageView(
-                    imageName: laporan.foto ?? "test",
-                    imageURL: laporan.fullFotoURL 
-                )
+            .navigationDestination(isPresented: $navigateToFullImage) {
+                if laporan.fullFotoURL != nil {
+                    // If you also want to support URL, create a variant that loads remote image.
+                    // For now, fallback to name if provided.
+                    FullImageView(imageName: laporan.foto ?? "test")
+                } else {
+                    FullImageView(imageName: laporan.foto ?? "test")
+                }
             }
-
-
             .alert("Konfirmasi", isPresented: $showingStatusUpdateAlert) {
                 Button("Batal", role: .cancel) {}
                 Button("Update") {
@@ -155,7 +156,7 @@ struct LaporanDetailView: View {
             } message: {
                 Text("Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.")
             }
-        
+        }
     }
 
     @ViewBuilder
@@ -238,7 +239,7 @@ struct LaporanDetailView: View {
     )
 
     NavigationStack {
-        LaporanDetailView(laporan: laporan)
+        LaporanDetailViewV2(laporan: laporan)
             .environmentObject(AuthViewModel())
     }
 }

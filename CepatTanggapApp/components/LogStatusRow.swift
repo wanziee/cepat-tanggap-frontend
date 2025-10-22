@@ -64,16 +64,16 @@ struct LogStatusRow: View {
                         switch phase {
                         case .empty:
                             ProgressView()
-                                .frame(height: 120)
+                                .frame(height: 140)
                         case .success(let image):
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(height: 120)
+                                .frame(height: 140)
                                 .clipped()
                         case .failure:
                             Image(systemName: "photo")
-                                .frame(height: 120)
+                                .frame(height: 140)
                                 .background(Color.gray.opacity(0.2))
                         @unknown default:
                             EmptyView()

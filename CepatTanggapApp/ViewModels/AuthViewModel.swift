@@ -41,52 +41,67 @@ final class AuthViewModel: ObservableObject {
     
     // MARK: - Authentication
     
-    func login(nik: String, password: String) {
-        isLoading = true
-        errorMessage = nil
-        
-        guard let url = URL(string: "\(baseURL)/auth/login") else {
-            errorMessage = "Invalid URL"
-            isLoading = false
-            return
-        }
-        
-        let loginData = ["nik": nik, "password": password]
-        let jsonData = try? JSONEncoder().encode(loginData)
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      (200...299).contains(httpResponse.statusCode) else {
-                    self?.errorMessage = "Invalid credentials"
-                    return
-                }
-                
-                if let data = data {
-                    do {
-                        let response = try JSONDecoder().decode(LoginResponse.self, from: data)
-                        self?.currentUser = response.user
-                        self?.isAuthenticated = true
-                        UserDefaults.standard.set(response.token, forKey: "authToken")
-                    } catch {
-                        self?.errorMessage = "Failed to decode response"
+
+        func login(nik: String, password: String) {
+            isLoading = true
+            errorMessage = nil
+            
+            guard let url = URL(string: "\(baseURL)/auth/login") else {
+                errorMessage = "Gagal terhubung ke server. Periksa koneksi internet Anda."
+                isLoading = false
+                return
+            }
+            
+            let loginData = ["nik": nik, "password": password]
+            let jsonData = try? JSONEncoder().encode(loginData)
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonData
+            
+            URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    
+                    if let error = error {
+                        self?.errorMessage = "Gagal terhubung ke server: \(error.localizedDescription)"
+                        return
+                    }
+                    
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        self?.errorMessage = "Gagal mendapatkan respons dari server"
+                        return
+                    }
+                    
+                    if (200...299).contains(httpResponse.statusCode) {
+                        if let data = data {
+                            do {
+                                let response = try JSONDecoder().decode(LoginResponse.self, from: data)
+                                self?.currentUser = response.user
+                                self?.isAuthenticated = true
+                                UserDefaults.standard.set(response.token, forKey: "authToken")
+                            } catch {
+                                self?.errorMessage = "Gagal memproses data login"
+                            }
+                        }
+                    } else {
+                        // Handle error responses
+                        if let data = data,
+                           let errorResponse = try? JSONDecoder().decode([String: String].self, from: data),
+                           let message = errorResponse["message"] {
+                            self?.errorMessage = message
+                        } else if httpResponse.statusCode == 401 {
+                            self?.errorMessage = "NIK atau password salah"
+                        } else if httpResponse.statusCode == 400 {
+                            self?.errorMessage = "NIK dan password harus diisi"
+                        } else {
+                            self?.errorMessage = "Terjadi kesalahan. Kode: \(httpResponse.statusCode)"
+                        }
                     }
                 }
-            }
-        }.resume()
-    }
+            }.resume()
+        }
     
     func logout() {
         isAuthenticated = false
@@ -205,8 +220,9 @@ final class AuthViewModel: ObservableObject {
         name: String,
         address: String?,
         phone: String?,
-        rt: String? = nil,
-        rw: String? = nil,
+        email: String?,
+//        rt: String? = nil,
+//        rw: String? = nil,
         completion: @escaping (Bool, String) -> Void
     ) {
         self.isLoading = true
@@ -226,21 +242,22 @@ final class AuthViewModel: ObservableObject {
         }
         
         // Siapkan data yang akan dikirim
-        var profileData: [String: Any] = [
+        let profileData: [String: Any] = [
             "nama": name,
             "alamat": address ?? "",
-            "no_hp": phone ?? ""
+            "no_hp": phone ?? "",
+            "email": email ?? ""
         ]
         
-        // Tambahkan RT dan RW jika ada
-        if let rt = rt, !rt.isEmpty {
-            profileData["rt"] = rt
-        }
-        
-        if let rw = rw, !rw.isEmpty {
-            profileData["rw"] = rw
-        }
-        
+//        // Tambahkan RT dan RW jika ada
+//        if let rt = rt, !rt.isEmpty {
+//            profileData["rt"] = rt
+//        }
+//        
+//        if let rw = rw, !rw.isEmpty {
+//            profileData["rw"] = rw
+//        }
+//        
         // Encode data ke JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: profileData) else {
             self.isLoading = false
@@ -260,8 +277,8 @@ final class AuthViewModel: ObservableObject {
         print("Method:", request.httpMethod ?? "")
         print("Headers:", request.allHTTPHeaderFields ?? "")
         print("Body:", String(data: jsonData, encoding: .utf8) ?? "")
-        print("RT value being sent:", rt ?? "nil")
-        print("RW value being sent:", rw ?? "nil")
+//        print("RT value being sent:", rt ?? "nil")
+//        print("RW value being sent:", rw ?? "nil")
         
         // Kirim request
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in

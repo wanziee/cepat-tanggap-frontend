@@ -105,18 +105,21 @@ struct ProfilePageView: View {
                                     .font(.title3)
                                     .fontWeight(.medium)
                                 
-                                HStack {
+                                VStack {
                                     Text(user.role.capitalized)
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
-                                    Text("RW \(user.rw ?? "")")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                    HStack {
 
-                                    Text("RT \(user.rt ?? "")")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-
+                                        Text("RW \(user.rw ?? "")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("RT \(user.rt ?? "")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                    }
                                 }
                             }
                             .padding(.vertical, 16)
@@ -127,9 +130,9 @@ struct ProfilePageView: View {
                     
                     Section(header: Text("Informasi Akun")) {
                         ProfileInfoRow(icon: "person.fill", title: "NIK", value: user.nik ?? "-")
-                        if let email = user.email, !email.isEmpty {
-                            ProfileInfoRow(icon: "envelope.fill", title: "Email", value: email)
-                        }
+                        
+                        ProfileInfoRow(icon: "envelope.fill", title: "Email", value: user.email ?? "-")
+                        
                         ProfileInfoRow(icon: "phone.fill", title: "No. HP", value: user.noHp ?? "-")
                         ProfileInfoRow(icon: "mappin.and.ellipse", title: "Alamat", value: user.alamat ?? "-")
                         
@@ -149,7 +152,7 @@ struct ProfilePageView: View {
                     Button(action: {
                         authViewModel.logout()
                     }) {
-                        Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+                        Label("Keluar", systemImage: "rectangle.portrait.and.arrow.right")
                             .foregroundColor(.red)
                     }
                 }

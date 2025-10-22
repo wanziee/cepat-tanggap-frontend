@@ -10,6 +10,7 @@ struct EditProfileView: View {
     @State private var address = ""
     @State private var rt = ""
     @State private var rw = ""
+    @State private var email = ""
     @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var confirmPassword = ""
@@ -49,22 +50,33 @@ struct EditProfileView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    if let email = user.email, !email.isEmpty {
-                        HStack {
-                            Text("Email")
-                            Spacer()
-                            Text(email)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
                     HStack {
-                        Text("Role")
+                        Text("RT")
                         Spacer()
-                        Text(user.role.capitalized)
+                        Text(user.rt ?? "-")
                             .foregroundColor(.secondary)
                     }
                     
+                    HStack {
+                        Text("RW")
+                        Spacer()
+                        Text(user.rw ?? "-")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    
+                    
+                   
+                        HStack {
+                            Text("Email")
+                            Spacer()
+                            TextField("", text: $email)
+                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.emailAddress)
+                        }
+             
+                    
+
                     HStack {
                         Text("No. HP")
                         Spacer()
@@ -80,22 +92,7 @@ struct EditProfileView: View {
                             .multilineTextAlignment(.trailing)
                     }
                     
-                    HStack {
-                        Text("RT")
-                        Spacer()
-                        TextField("Contoh: 001", text: $rt)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    
-                    HStack {
-                        Text("RW")
-                        Spacer()
-                        TextField("Contoh: 001", text: $rw)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    
+
                     Button("Simpan Perubahan") {
                         print("EditProfileView: Tombol Simpan Perubahan ditekan")
                         if !authViewModel.isLoading {
@@ -126,6 +123,7 @@ struct EditProfileView: View {
                 address = user.alamat ?? ""
                 rt = user.rt ?? ""
                 rw = user.rw ?? ""
+                email = user.email ?? ""
             }
         }
         .alert(isPresented: $showAlert) {
@@ -157,23 +155,30 @@ struct EditProfileView: View {
             return
         }
         
-        // Validasi RT dan RW jika diisi
-        if !rt.isEmpty && (Int(rt) == nil || rt.count > 3) {
-            showAlert(message: "RT harus berupa angka maksimal 3 digit")
+        // Validasi email
+        if email.isEmpty || !email.contains("@") {
+            showAlert(message: "Email tidak valid")
             return
         }
         
-        if !rw.isEmpty && (Int(rw) == nil || rw.count > 3) {
-            showAlert(message: "RW harus berupa angka maksimal 3 digit")
-            return
-        }
+        // Validasi RT dan RW jika diisi
+//        if !rt.isEmpty && (Int(rt) == nil || rt.count > 3) {
+//            showAlert(message: "RT harus berupa angka maksimal 3 digit")
+//            return
+//        }
+//        
+//        if !rw.isEmpty && (Int(rw) == nil || rw.count > 3) {
+//            showAlert(message: "RW harus berupa angka maksimal 3 digit")
+//            return
+//        }
         
         authViewModel.updateProfile(
-            name: user.nama, 
-            address: address, 
+            name: user.nama,
+            address: address,
             phone: phoneNumber,
-            rt: rt.isEmpty ? nil : rt,
-            rw: rw.isEmpty ? nil : rw
+            email: email
+//            rt: rt.isEmpty ? nil : rt,
+//            rw: rw.isEmpty ? nil : rw
         ) { success, message in
             DispatchQueue.main.async {
                 print("EditProfileView: Callback updateProfile selesai, success: \(success), message: \(message)")
@@ -185,7 +190,7 @@ struct EditProfileView: View {
             }
         }
     }
-    
+
     private func updatePassword() {
         guard isPasswordFormValid else {
             showAlert(message: "Mohon isi semua field dengan benar, pastikan password baru cocok dengan konfirmasi, dan minimal 6 karakter.")

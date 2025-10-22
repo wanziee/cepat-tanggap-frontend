@@ -30,24 +30,40 @@ struct DashboardView: View {
                             ProgressView()
                                 .frame(maxWidth: .infinity, alignment: .center)
                         } else {
+                            
+                            if viewModel.laporanList.count >= 1{
+                                
+                         
                             ScrollView(.vertical) {
                                 VStack(spacing: 12) {
                                     ForEach(viewModel.laporanList.prefix(5)) { laporan in
-                                        LaporanHistoryCard(
-                                            category: laporan.kategori.rawValue,
-                                            deskripsi: laporan.deskripsi,
-                                            tanggal: formatDate(from: laporan.createdAt)
-                                        )
+                                        LaporanHistoryCard(laporan: laporan)
                                     }
-                                    
-                                    VStack{
-                                        
-                                    }
+                    
+                                    Rectangle()
                                     .frame(width: 30, height: 120)
+                                    .foregroundStyle(Color.white)
                                 }
-                                
                                 .padding(.horizontal, 20)
                                 .padding(.top, 3)
+                            }
+                            } else {
+                                
+                                VStack(spacing: 10){
+                                    
+                              
+                                Image(systemName: "doc.text.magnifyingglass")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray)
+                                Text("Tidak ada riwayat laporan")
+                                    .font(.headline)
+//                                Text("Anda belum membuat laporan")
+//                                    .font(.subheadline)
+//                                    .foregroundColor(.gray)
+//                                    .multilineTextAlignment(.center)
+                                }
+                                .padding(.bottom, 80)
+                                .frame(maxWidth:.infinity, maxHeight: .infinity, alignment: .center)
                             }
                             
                         }
@@ -175,7 +191,7 @@ func HeaderView(viewModel: LaporanViewModel, authViewModel: AuthViewModel, hasNe
                         .fontWeight(.bold)
                         .foregroundColor(.white)
 
-                    Text("Rp. 10.000.000")
+                    Text("Lihat Rekap RT")
                         .font(.system(size: 11))
                         .fontWeight(.light)
                         .foregroundColor(.white)

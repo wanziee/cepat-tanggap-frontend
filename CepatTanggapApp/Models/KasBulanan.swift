@@ -4,26 +4,39 @@ struct KasBulanan: Identifiable, Decodable {
     let id: Int
     let filename: String
     let filepath: String
+    let description: String?
     let relatedRt: String?
     let relatedRw: String?
-    let uploadDate: String? // Ganti dari Date ke String
-    // Bisa juga pakai Date? jika yakin nilainya pasti ISO
-
+    let uploadDate: String?
+    
+    // Tidak perlu init manual jika property name cocok
+    
     var bulanFormatted: String {
         guard let uploadDate = uploadDate else { return "-" }
 
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: uploadDate) {
-            let output = DateFormatter()
-            output.locale = Locale(identifier: "id_ID")
-            output.dateFormat = "MMMM yyyy"
-            return output.string(from: date)
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let outputFormatter = DateFormatter()
+        outputFormatter.locale = Locale(identifier: "id_ID")
+        outputFormatter.dateFormat = "MMMM yyyy"
+
+        if let date = isoFormatter.date(from: uploadDate) {
+            return outputFormatter.string(from: date).capitalized
+        } else {
+            return uploadDate // fallback kalau gagal parse
         }
-        return "-"
     }
 
+
     var fileUrl: URL? {
-        guard let baseURL = URL(string: "http://localhost:3000/uploads/") else { return nil }
-        return baseURL.appendingPathComponent(filepath)
+        guard !filepath.isEmpty,
+              let baseURL = URL(string: "http://192.168.43.191:3000/uploads/") else {
+            return nil
+        }
+
+        let cleanPath = filepath.hasPrefix("/") ? String(filepath.dropFirst()) : filepath
+        return baseURL.appendingPathComponent(cleanPath)
     }
 }
+

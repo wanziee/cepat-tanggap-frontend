@@ -12,6 +12,7 @@ struct Notification: Identifiable {
     let title: String
     let message: String
     let rawDate: Date
+    let foto: String?
     var date: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
@@ -40,7 +41,7 @@ struct Notification: Identifiable {
             icon = "xmark.octagon.fill"
             color = .red
             bgColor = .red.opacity(0.2)
-        case .pending:  // ✅ atau kamu bisa pakai .dibuat jika enum-nya kamu tambahkan
+        case .pending:
             title = "Laporan berhasil dibuat"
             icon = "square.and.pencil"
             color = .blue
@@ -49,8 +50,9 @@ struct Notification: Identifiable {
 
 
         message = log.tanggapan ?? ""
-        rawDate = log.waktu.toDate() ?? Date()          // ✅ Tambahkan baris ini            // ✅ Gunakan kembali format yang sudah ada
+        rawDate = log.waktu.toDate() ?? Date()
         kodeLaporan = laporan.kdLaporan
+        foto = log.foto ?? nil
     }
 }
 

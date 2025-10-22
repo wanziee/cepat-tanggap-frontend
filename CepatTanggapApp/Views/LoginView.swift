@@ -1,3 +1,10 @@
+//
+//  LoginView.swift
+//  CepatTanggapApp
+//
+//  Created by mohammad ichwan al ghifari on 14/06/25.
+//
+
 import SwiftUI
 
 struct LoginView: View {
@@ -5,8 +12,11 @@ struct LoginView: View {
     @State private var nik = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
-
     
+    // Alert states
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -50,8 +60,6 @@ struct LoginView: View {
                             .cornerRadius(10)
                     }
 
-                    
-                    
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Password")
                             .font(.caption)
@@ -85,30 +93,21 @@ struct LoginView: View {
                         }
                     }
 
-
-                    
-//                    if let error = authViewModel.errorMessage {
-//                        Text(error)
-//                            .foregroundColor(.red)
-//                            .font(.caption)
-//                    }
-                    
                     Button(action: login) {
                         if authViewModel.isLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Login")
+                            Text("Masuk")
                                 .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical)
                                 .background(Color("AccentColor"))
                                 .cornerRadius(10)
-
                         }
                     }
                     .padding(.top, 10)
-                    .disabled(nik.isEmpty || password.isEmpty || authViewModel.isLoading)
+                    .disabled(authViewModel.isLoading)
                 }
                 .padding(.horizontal, 30)
                 
@@ -116,7 +115,7 @@ struct LoginView: View {
                 
                 // Footer
                 VStack(spacing: 4) {
-                    Text(" 2025 Cepat Tanggap")
+                    Text("2025 Cepat Tanggap")
                         .font(.caption)
                         .foregroundColor(.gray)
                     Text("Versi 1.0.0")
@@ -130,11 +129,31 @@ struct LoginView: View {
                 authViewModel.checkAuth()
             }
             .navigationBarHidden(true)
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text("Gagal Masuk"),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
+        .onReceive(authViewModel.$errorMessage.compactMap { $0 }) { error in
+            alertMessage = error
+            showAlert = true
+        }
+
     }
     
     private func login() {
-        authViewModel.login(nik: nik, password: password)
+        let trimmedNik = nik.trimmingCharacters(in: .whitespaces)
+        
+        if trimmedNik.isEmpty || password.isEmpty {
+            alertMessage = "NIK dan Password tidak boleh kosong."
+            showAlert = true
+            return
+        }
+
+        authViewModel.login(nik: trimmedNik, password: password)
     }
 }
 

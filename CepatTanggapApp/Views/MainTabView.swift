@@ -8,7 +8,7 @@ struct MainTabView: View {
         TabView {
             DashboardView()
                 .tabItem {
-                    Label("Dashboard", systemImage: "house")
+                    Label("Beranda", systemImage: "house")
                 }
                 .environmentObject(authViewModel)
                 .environmentObject(laporanViewModel)

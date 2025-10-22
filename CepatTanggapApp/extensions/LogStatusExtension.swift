@@ -13,7 +13,7 @@ extension LogStatus {
             if foto.starts(with: "http") {
                 return URL(string: foto)
             } else {
-                return URL(string: "http://192.168.0.107:3000\(foto)")
+                return URL(string: "http://127.0.0.1:3000\(foto)")
             }
         }
         return nil

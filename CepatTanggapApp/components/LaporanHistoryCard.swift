@@ -7,53 +7,58 @@
 
 import SwiftUI
 
+
+
 struct LaporanHistoryCard: View {
-    
-    var category: String
-    var deskripsi: String
-    var tanggal: String
+    let laporan: Laporan
+    var isLaporanWarga: Bool = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10){
-            Text(category)
-                .font(.headline)
-                .fontWeight(.bold)
-            
-            Text(deskripsi)
-                .font(.subheadline)
-            
-            HStack{
-                Text(tanggal)
-                    .font(.caption)
+        NavigationLink(destination: LaporanDetailView(laporan: laporan, isLaporanWarga: isLaporanWarga)) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(laporan.kategori.rawValue) // Pastikan kategori pakai enum .rawValue
+                    .font(.headline)
+                    .fontWeight(.bold)
                 
-                Spacer()
-                
-                NavigationLink{
-                    
-                } label:{
+                Text(laporan.deskripsi)
+                    .font(.subheadline)
+                    .lineLimit(2)
+                    .foregroundColor(.primary)
+
+                HStack {
+                    Text(formattedDate(laporan.createdAt))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
                     HStack(spacing: 0){
                         Text("Lihat Detail ")
                             .font(.caption)
-                            .foregroundStyle(Color.darkBlue)
-                        
+                            .foregroundStyle(Color.blue)
+
                         Image(systemName: "arrow.right")
                             .font(.caption)
-                            .foregroundStyle(Color.darkBlue)
+                            .foregroundStyle(Color.blue)
                     }
-
                 }
-                
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 0)
         }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .cornerRadius(10)
-        .shadow(color: Color.gray, radius: 1)
-
+        .buttonStyle(PlainButtonStyle())
     }
-}
 
-#Preview {
-    LaporanHistoryCard(category: "Jalan", deskripsi: "fjaslkjdflksa flskadj flkasdf klsa", tanggal: "03/04/2025")
-        .padding()
+    private func formattedDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        if let date = formatter.date(from: isoString) {
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateStyle = .medium
+            return outputFormatter.string(from: date)
+        }
+        return isoString
+    }
 }

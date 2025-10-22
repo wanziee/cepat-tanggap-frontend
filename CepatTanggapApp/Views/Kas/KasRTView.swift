@@ -5,75 +5,85 @@ struct KasRTView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                if viewModel.isLoading {
-                    ProgressView("Memuat data...")
-                        .padding()
-                } else if let error = viewModel.errorMessage {
-                    Text("Gagal memuat data: \(error)")
-                        .foregroundColor(.red)
-                        .padding()
-                } else if viewModel.kasList.isEmpty {
-                    Text("Belum ada data kas untuk RT Anda.")
-                        .padding()
-                } else {
-                    VStack(spacing: 16) {
-                        ForEach(viewModel.kasList) { kas in
-                            laporanCard(for: kas)
+            ZStack{
+                Color(UIColor.systemGroupedBackground) // latar belakang layar
+                    .ignoresSafeArea()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        if viewModel.isLoading {
+                            ProgressView("Memuat data...")
+                                .padding(.top)
+                        } else if let error = viewModel.errorMessage {
+                            Text("Gagal memuat data: \(error)")
+                                .foregroundColor(.red)
+                                .padding()
+                        } else if viewModel.kasList.isEmpty {
+                            Text("Belum ada data kas untuk RT Anda.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .padding()
+                        } else {
+                            ForEach(viewModel.kasList) { kas in
+                                laporanCard(for: kas)
+                            }
                         }
                     }
                     .padding()
                 }
+                .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
+                .navigationTitle("Kas RT")
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear {
+                    viewModel.fetchKas()
+                }
             }
-            .navigationTitle("Kas RT")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                viewModel.fetchKas()
-            }
-            .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
         }
+        .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
     }
 
     private func laporanCard(for kas: KasBulanan) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Image(systemName: "doc.richtext.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 160)
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.blue)
-                .background(Color.blue.opacity(0.1))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Laporan RT - \(kas.bulanFormatted)")
+                        .font(.system(.title3, design: .rounded))
+                        .fontWeight(.semibold)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Laporan Kas")
-                    .font(.caption)
-                    .foregroundColor(.accentColor)
-                    .fontWeight(.semibold)
-
-                Text(kas.bulanFormatted)
-                    .font(.title3)
-                    .fontWeight(.bold)
-
-                HStack(spacing: 6) {
-                    Image(systemName: "house.fill")
-                        .foregroundColor(.accentColor)
                     Text("RT \(kas.relatedRt ?? "-") / RW \(kas.relatedRw ?? "-")")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
 
+                Spacer()
+
                 if let url = kas.fileUrl {
-                    Link("Lihat PDF", destination: url)
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                        .padding(.top, 4)
+                    Link(destination: url) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "doc.richtext.fill")
+                            Text("Lihat PDF")
+                        }
+                        .font(.caption)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.accentColor.opacity(0.15))
+                        .foregroundColor(.accentColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
                 }
             }
-            .padding()
+
+            if let desc = kas.description, !desc.isEmpty {
+                Text(desc)
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
         }
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 3)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 4)
+        )
     }
 }
 
