@@ -41,24 +41,7 @@ struct NewLaporanView: View {
                     
                     imagePickerSection()
                     
-                    Button(action: {
-                        if jumlahHuruf < 40 {
-                            deskripsiTooShort = true
-                        } else if lokasi.isEmpty{
-                            lokasiKosong = true
-                        }
-                        else {
-                            saveLaporan()
-                        }
-                    }) {
-                        Text("Buat Laporan")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .disabled(deskripsi.isEmpty || laporanViewModel.isLoading || lokasiKosong || deskripsi.count < 40)
+                    buatLaporanButton()
                     
                     Spacer()
                 }
@@ -67,8 +50,10 @@ struct NewLaporanView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Batal") {
+                        Button {
                             presentationMode.wrappedValue.dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
                         }
                     }
                 }
@@ -102,7 +87,6 @@ struct NewLaporanView: View {
                 } message: {
                     Text("Silakan pilih lokasi terlebih dahulu sebelum mengirim laporan.")
                 }
-
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(UIColor.secondarySystemBackground))
@@ -296,6 +280,28 @@ struct NewLaporanView: View {
         .padding()
         .background(Color.white)
         .cornerRadius(15)
+    }
+    
+    // MARK: - Buat Laporan Button
+    @ViewBuilder
+    private func buatLaporanButton() -> some View {
+        Button(action: {
+            if jumlahHuruf < 40 {
+                deskripsiTooShort = true
+            } else if lokasi.isEmpty {
+                lokasiKosong = true
+            } else {
+                saveLaporan()
+            }
+        }) {
+            Text("Buat Laporan")
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.accentColor)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+        .disabled(deskripsi.isEmpty || laporanViewModel.isLoading || lokasiKosong || deskripsi.count < 40)
     }
 
     // MARK: - Helper

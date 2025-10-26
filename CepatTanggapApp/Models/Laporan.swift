@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct Laporan: Codable, Identifiable {
+struct Laporan: Codable, Identifiable, Equatable {
     let id: Int
     let userId: Int
     let kategori: KategoriLaporan
@@ -15,6 +15,11 @@ struct Laporan: Codable, Identifiable {
     let isAnonymous: Bool?             // ✅ Tambahan
     let user: User
     let logStatus: [LogStatus]?
+
+    // Equatable by stable identifier
+    static func == (lhs: Laporan, rhs: Laporan) -> Bool {
+        lhs.id == rhs.id
+    }
 
     // Convenience initializer (digunakan di Preview / dummy)
     init(
@@ -132,5 +137,3 @@ struct LaporanListResponse: Codable {
     let message: String?
     let data: [Laporan]
 }
-
-

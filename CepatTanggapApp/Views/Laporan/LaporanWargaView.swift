@@ -11,8 +11,8 @@ struct LaporanWargaView: View {
     @State private var rotationAngle = 0.0
 
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .top) {
+        NavigationStack {
+            
                 VStack(spacing: 0) {
                     ZStack {
                         if vm.isLoading && vm.laporanList.isEmpty || refreshLoading {
@@ -29,59 +29,26 @@ struct LaporanWargaView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-
-                VStack {
-                    HStack {
-                        Button(action: {
-                            refreshLoading = true
-                            animateRotation()
-
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                vm.fetchAll = true
-                                vm.filterUserId = nil
-                                vm.fetchLaporan()
-                                refreshLoading = false
-                            }
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 20, weight: .semibold))
-                                .rotationEffect(.degrees(rotationAngle))
-                                .animation(.linear(duration: 0.8), value: rotationAngle)
-                        }
-
-                        Spacer()
-
-                        Text("Laporan Warga")
-                            .font(.headline)
-                            .bold()
-
-                        Spacer()
-
-                        // Spacer untuk menjaga simetri UI
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 20, weight: .semibold))
-                            .opacity(0) // transparan agar tetap center
+                .navigationTitle("Laporan Warga")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar(.hidden, for: .tabBar)
+                .toolbar{
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Image(systemName: "ellipsis")
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
                 }
-                .background(.thinMaterial)
-                .overlay(
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundColor(Color.gray.opacity(0.2)),
-                    alignment: .bottom
-                )
-                .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 0)
-            }
+
+                
+            
             .onAppear {
                 vm.fetchAll = true
                 vm.filterUserId = nil
                 vm.fetchLaporan()
             }
-            .navigationBarHidden(true)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        
+        
+
     }
 
     private func animateRotation() {
@@ -97,5 +64,6 @@ struct LaporanWargaView_Previews: PreviewProvider {
     static var previews: some View {
         LaporanWargaView()
             .environmentObject(AuthViewModel())
+            .navigationTitle("Laporan Warga")
     }
 }

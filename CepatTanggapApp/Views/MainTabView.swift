@@ -6,39 +6,45 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
-            DashboardView()
-                .tabItem {
-                    Label("Beranda", systemImage: "house")
-                }
-                .environmentObject(authViewModel)
-                .environmentObject(laporanViewModel)
+                   // MARK: - Tab 1
+                   Tab("Beranda", systemImage: "house.fill") {
+                       DashboardView()
+                           .environmentObject(authViewModel)
+                           .environmentObject(laporanViewModel)
+                   }
+
+                   // MARK: - Tab 2
+//                   Tab("Laporan", systemImage: "doc.text.fill") {
+//                       LaporanSayaView()
+//                           .environmentObject(authViewModel)
+//                           .environmentObject(laporanViewModel)
+//                   }
             
-            LaporanSayaView()
-                .environmentObject(authViewModel)
-                .environmentObject(laporanViewModel)
-                .tabItem {
-                    Label("Laporan Saya", systemImage: "doc.text")
-                }
-            
-            LaporanWargaView()
-                .environmentObject(authViewModel)
-                .tabItem {
-                    Label("Laporan Warga", systemImage: "doc.on.doc.fill")
-                }
-            
-            KasRTView()
-                .environmentObject(authViewModel)
-                .tabItem {
-                    Label("Kas RT", systemImage: "dollarsign.square.fill")
-                }
-            
-            ProfilePageView()
-                .environmentObject(authViewModel)
-                .tabItem {
-                    Label("Profil", systemImage: "person")
-                }
-                .environmentObject(authViewModel)
-        }
+            // MARK: - Tab 2
+            Tab("Laporan", systemImage: "doc.text.fill") {
+                LaporanView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(laporanViewModel)
+            }
+
+//                   // MARK: - Tab 3
+//                   Tab("LaporanW", systemImage: "doc.on.doc.fill") {
+//                       LaporanWargaView()
+//                           .environmentObject(authViewModel)
+//                   }
+
+                   // MARK: - Tab 4
+                   Tab("Kas RT", systemImage: "dollarsign.square.fill") {
+                       KasRTView()
+                           .environmentObject(authViewModel)
+                   }
+
+                   // MARK: - Tab 5 (terpisah di kanan)
+            Tab("Profil", systemImage: "plus",role: .search) {
+                       ProfilePageView()
+                           .environmentObject(authViewModel)
+                   }
+               }
     }
 }
 

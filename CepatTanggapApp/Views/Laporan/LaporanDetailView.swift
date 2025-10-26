@@ -7,7 +7,8 @@ struct LaporanDetailView: View {
     @State private var selectedStatus: StatusLaporan
     @State private var showingStatusUpdateAlert = false
     @State private var showingDeleteAlert = false
-    @State private var navigateToFullImage = false
+    @State private var showLaporanFullImage = false
+    @State var showLogFullImage = false
     @State var isLaporanWarga: Bool = false
 
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -110,7 +111,7 @@ struct LaporanDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        navigateToFullImage = true
+                        showLaporanFullImage = true
                     } label: {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                     }
@@ -126,7 +127,7 @@ struct LaporanDetailView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $navigateToFullImage) {
+            .fullScreenCover(isPresented: $showLaporanFullImage) {
                 FullImageView(
                     imageName: laporan.foto ?? "test",
                     imageURL: laporan.fullFotoURL 

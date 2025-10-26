@@ -18,17 +18,17 @@ struct LaporanListView: View {
             
 
                 
-            if laporanSaya {
-                Rectangle()
-                    .frame(height: 100)/// ini padding atas
-                    .foregroundStyle(Color.clear)
-            }
-            
-            if isLaporanWarga{
-                Rectangle()
-                    .frame(height: 50)/// ini padding atas
-                    .foregroundStyle(Color.clear)
-            }
+//            if laporanSaya {
+//                Rectangle()
+//                    .frame(height: 100)/// ini padding atas
+//                    .foregroundStyle(Color.clear)
+//            }
+//            
+//            if isLaporanWarga{
+//                Rectangle()
+//                    .frame(height: 50)/// ini padding atas
+//                    .foregroundStyle(Color.clear)
+//            }
 
             ForEach(Array(laporanList.enumerated()), id: \.element.id) { index, laporan in
                 NavigationLink(destination: LaporanDetailView(laporan: laporan, isLaporanWarga: isLaporanWarga)) {
